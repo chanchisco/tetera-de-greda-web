@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta property="og:title" content="La Tetera de Greda | Restobar">
+    <meta property="og:description" content="Comida Típica Chilena en Villa Alemana. Revisa nuestra carta digital.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=1000">
+    <meta property="og:type" content="website">
+
+    <title>La Tetera de Greda - Menú Digital</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* COLORES BASADOS EN TUS MENÚS */
+        :root {
+            --greda-red: #7a281d; /* Color rojo oscuro del logo */
+            --greda-brown: #401b0f; /* Color café oscuro del fondo de los menús */
+            --greda-orange: #e58729; /* Color naranja de los textos */
+            --bg-light: #faf3e0; /* Color cremita para el fondo de la página */
+            --text-dark: #2c1e16;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* CABECERA (HERO) */
+        .hero {
+            height: 60vh;
+            background: linear-gradient(rgba(64, 27, 15, 0.7), rgba(122, 40, 29, 0.7)), url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1000') center/cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            padding: 20px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .btn-main {
+            background-color: var(--greda-orange);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.3s, background 0.3s;
+            box-shadow: 0 4px 15px rgba(229, 135, 41, 0.4);
+        }
+
+        .btn-main:hover {
+            transform: translateY(-3px);
+            background-color: #f09a45;
+        }
+
+        /* SECCIÓN MENÚ */
+        .menu-section {
+            padding: 60px 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            color: var(--greda-red);
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+
+        /* FILTROS DEL MENÚ */
+        .filters {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 40px;
+        }
+
+        .filter-btn {
+            background-color: transparent;
+            border: 2px solid var(--greda-brown);
+            color: var(--greda-brown);
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background-color: var(--greda-brown);
+            color: white;
+        }
+
+        /* GRILLA DE PLATOS */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-item {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--greda-red);
+            display: none; /* Oculto por defecto para el filtro */
+        }
+
+        .menu-item.show {
+            display: block; /* Clase para mostrar según filtro */
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 10px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: var(--greda-brown);
+            font-size: 1.1rem;
+        }
+
+        .item-price {
+            color: var(--greda-orange);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .item-desc {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* REDES SOCIALES Y MAPA */
+        .social-map-section {
+            background-color: var(--greda-brown);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .social-map-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+
+        @media (min-width: 768px) {
+            .social-map-container { grid-template-columns: 1fr 1fr; text-align: left; align-items: center; }
+            .social-map-section { text-align: left; }
+        }
+
+        .instagram-box h2 {
+            color: var(--greda-orange);
+            margin-bottom: 20px;
+        }
+
+        .instagram-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin-top: 15px;
+        }
+
+        .map-box iframe {
+            width: 100%;
+            height: 300px;
+            border-radius: 15px;
+            border: 3px solid var(--greda-orange);
+        }
+
+        /* BOTÓN FLOTANTE WHATSAPP */
+        .whatsapp-float {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            bottom: 30px;
+            right: 30px;
+            background-color: #25d366;
+            color: #FFF;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 35px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: transform 0.3s;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #1a0e08;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <h1>La Tetera de Greda</h1>
+        <p>Restobar • Comida Típica Chilena</p>
+        <a href="#carta" class="btn-main">Ver Nuestra Carta</a>
+    </header>
+
+    <section id="carta" class="menu-section">
+        <h2 class="section-title">Nuestro Menú</h2>
+        
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterMenu('todos')">Todos</button>
+            <button class="filter-btn" onclick="filterMenu('fondos')">Platos de Fondo</button>
+            <button class="filter-btn" onclick="filterMenu('pobre')">A lo Pobre</button>
+            <button class="filter-btn" onclick="filterMenu('entradas')">Entradas</button>
+            <button class="filter-btn" onclick="filterMenu('bebestibles')">Bebestibles</button>
+            <button class="filter-btn" onclick="filterMenu('postres')">Postres</button>
+        </div>
+
+        <div class="menu-grid">
+            
+            <div class="menu-item fondos todos show">
+                <div class="item-header">
+                    <span class="item-name">Pastel de Choclo</span>
+                    <span class="item-price">$13.900</span>
+                </div>
+                <p class="item-desc">Base de pino, pollo a la plancha, huevo y aceituna, coronado con pastelera de choclo.</p>
+            </div>
+
+            <div class="menu-item fondos todos show">
+                <div class="item-header">
+                    <span class="item-name">Cazuela de Vacuno</span>
+                    <span class="item-price">$12.000</span>
+                </div>
+                <p class="item-desc">Con plateada, papa, zapallo, choclo, porotos verdes, coronada con cilantro y ají verde.</p>
+            </div>
+
+            <div class="menu-item fondos todos show">
+                <div class="item-header">
+                    <span class="item-name">Lomo Tetera</span>
+                    <span class="item-price">$14.000</span>
+                </div>
+                <p class="item-desc">Lomo a la plancha acompañado de arroz y papas fritas, coronado con salsa de alcaparras.</p>
+            </div>
+
+            <div class="menu-item pobre todos show">
+                <div class="item-header">
+                    <span class="item-name">Lomo a lo Pobre</span>
+                    <span class="item-price">$16.900</span>
+                </div>
+                <p class="item-desc">Lomo a la plancha acompañado de papas fritas, cebolla caramelizada y dos huevos fritos.</p>
+            </div>
+
+            <div class="menu-item pobre todos show">
+                <div class="item-header">
+                    <span class="item-name">Trutro a lo Pobre</span>
+                    <span class="item-price">$11.900</span>
+                </div>
+                <p class="item-desc">Trutro de pollo acompañado de papas fritas, cebolla caramelizada y dos huevos fritos.</p>
+            </div>
+
+            <div class="menu-item entradas todos show">
+                <div class="item-header">
+                    <span class="item-name">Camarones al Pilpil</span>
+                    <span class="item-price">$8.900</span>
+                </div>
+                <p class="item-desc">Camarones salteados en aceite de oliva con ajo, cilantro y ají cacho de cabra.</p>
+            </div>
+
+            <div class="menu-item entradas todos show">
+                <div class="item-header">
+                    <span class="item-name">Consomé Casero</span>
+                    <span class="item-price">$1.800</span>
+                </div>
+                <p class="item-desc">El clásico reponedor, calientito y hecho en casa.</p>
+            </div>
+
+            <div class="menu-item bebestibles todos show">
+                <div class="item-header">
+                    <span class="item-name">Pisco Sour</span>
+                    <span class="item-price">$3.500</span>
+                </div>
+                <p class="item-desc">Preparación tradicional.</p>
+            </div>
+
+            <div class="menu-item bebestibles todos show">
+                <div class="item-header">
+                    <span class="item-name">Jugo Natural</span>
+                    <span class="item-price">$3.500</span>
+                </div>
+                <p class="item-desc">Diferentes sabores de la estación.</p>
+            </div>
+
+            <div class="menu-item postres todos show">
+                <div class="item-header">
+                    <span class="item-name">Leche Asada</span>
+                    <span class="item-price">$4.000</span>
+                </div>
+                <p class="item-desc">Postre tradicional casero.</p>
+            </div>
+
+            </div>
+    </section>
+
+    <section class="social-map-section">
+        <div class="social-map-container">
+            <div class="instagram-box">
+                <h2>¡Ven a visitarnos!</h2>
+                <p><i class="fa-solid fa-location-dot" style="color: var(--greda-orange); margin-right: 10px;"></i> Santa Ana 98, Villa Alemana.</p>
+                <p style="margin-top: 15px;">¿Nos visitas? Etiquétanos en tus fotos y sé parte de la familia de La Tetera de Greda.</p>
+                <a href="https://www.instagram.com/lateteradegreda?igsh=MWE2cnlhZmY2NDV6aA==" target="_blank" class="instagram-link">
+                    <i class="fa-brands fa-instagram"></i> Síguenos @lateteradegreda
+                </a>
+            </div>
+            
+            <div class="map-box">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3345.545731306913!2d-71.37895052341999!3d-33.04207867355325!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689d7b411d9966b%3A0xc48c12a7d40e1b!2sSta.%20Ana%2098%2C%20Villa%20Alemana%2C%20Valpara%C3%ADso!5e0!3m2!1ses-419!2scl!4v1715310000000!5m2!1ses-419!2scl" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 Restobar La Tetera de Greda. Todos los derechos reservados.</p>
+    </footer>
+
+    <a href="https://wa.me/56971482268?text=Hola,%20vengo%20desde%20su%20página%20web%20y%20me%20gustaría%20hacer%20una%20consulta." class="whatsapp-float" target="_blank">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <script>
+        function filterMenu(category) {
+            // Quitar clase activa de todos los botones
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Agregar clase activa al botón presionado
+            event.target.classList.add('active');
+
+            // Mostrar/Ocultar platos
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach(item => {
+                if (item.classList.contains(category)) {
+                    item.classList.add('show');
+                } else {
+                    item.classList.remove('show');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
