@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nosotros | La Tetera de Greda</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root { --greda: #4b2e1e; --arcilla: #a0522d; --crema: #fdfaf5; --texto: #3e2723; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--crema); color: var(--texto); margin: 0; }
+        
+        .header-simple { text-align: center; padding: 60px 20px; background: var(--greda); color: white; }
+        .header-simple h1 { font-family: 'Playfair Display', serif; font-size: 3rem; }
+        
+        .nav-simple { display: flex; justify-content: center; gap: 30px; padding: 20px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .nav-simple a { text-decoration: none; color: var(--arcilla); font-weight: 600; }
+
+        .content { max-width: 900px; margin: 60px auto; padding: 0 20px; text-align: center; }
+        .content p { font-size: 1.1rem; line-height: 2; margin-bottom: 30px; }
+
+        /* GALERÍA DE IMÁGENES */
+        .gallery-container { display: flex; overflow-x: auto; gap: 20px; padding: 40px; background: #eee; }
+        .gallery-container img { height: 300px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        footer { background: var(--greda); color: white; padding: 30px; text-align: center; margin-top: 60px; }
+    </style>
+</head>
+<body>
+    <header class="header-simple">
+        <h1>Nuestra Historia</h1>
+    </header>
+
+    <nav class="nav-simple">
+        <a href="index.html">Inicio</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="carta.html">La Carta</a>
+    </nav>
+
+    <section class="content">
+        <p>Fundado hace años en Villa Alemana, La Tetera de Greda nació del amor por las raíces chilenas. Cada plato que servimos en nuestras fuentes de greda cuenta una historia de tradición, esfuerzo y familia. Nuestra misión es que cada cliente se sienta como almorzando en su propio hogar, rodeado de sabores auténticos y una atención cálida.</p>
+        <p>A lo largo del tiempo, nos hemos convertido en un referente gastronómico de la Quinta Región, manteniendo siempre la calidad de nuestras materias primas y el respeto por las recetas de antaño.</p>
+    </section>
+
+    <div class="gallery-container">
+        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=500" alt="Local">
+        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=500" alt="Comida">
+        <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=500" alt="Detalle">
+        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=500" alt="Tragos">
+    </div>
+
+    <footer>
+        &copy; 2026 La Tetera de Greda
+    </footer>
+</body>
+</html>

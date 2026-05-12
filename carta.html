@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Carta | La Tetera de Greda</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --greda: #4b2e1e; --arcilla: #a0522d; --crema: #fdfaf5; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--crema); margin: 0; }
+        
+        .header-carta { background: var(--arcilla); color: white; text-align: center; padding: 60px 20px; }
+        .nav-carta { display: flex; justify-content: center; gap: 30px; padding: 20px; background: white; }
+        .nav-carta a { text-decoration: none; color: var(--greda); font-weight: 600; }
+
+        .menu-container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+        .category-title { font-family: 'Playfair Display', serif; color: var(--arcilla); font-size: 2.2rem; border-bottom: 2px solid var(--tierra-clara); margin: 40px 0 20px; }
+
+        /* GRID PARA COMIDAS */
+        .grid-comidas { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .card-plato { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .card-plato img { width: 100%; height: 180px; object-fit: cover; }
+        .card-info { padding: 15px; }
+        .card-name { font-weight: 600; color: var(--greda); font-size: 1.1rem; display: flex; justify-content: space-between; }
+        .price { color: var(--arcilla); font-weight: 700; }
+        .desc { font-size: 0.85rem; color: #666; margin-top: 5px; }
+
+        /* LISTA PARA BEBESTIBLES */
+        .drink-item { display: flex; align-items: baseline; margin-bottom: 10px; }
+        .dots { flex-grow: 1; border-bottom: 1px dotted #ccc; margin: 0 10px; }
+
+        footer { background: var(--greda); color: white; padding: 30px; text-align: center; }
+    </style>
+</head>
+<body>
+    <header class="header-carta"><h1>Nuestra Carta</h1></header>
+    <nav class="nav-carta">
+        <a href="index.html">Inicio</a>
+        <a href="#comidas">Comidas</a>
+        <a href="#bebestibles">Bebestibles</a>
+    </nav>
+
+    <div class="menu-container">
+        
+        <h2 id="comidas" class="category-title">A lo Pobre</h2>
+        <div class="grid-comidas">
+            <div class="card-plato">
+                <img src="https://via.placeholder.com/300x200?text=Lomo">
+                <div class="card-info">
+                    <div class="card-name"><span>Lomo a lo Pobre</span> <span class="price">$16.900</span></div>
+                    <p class="desc">Lomo, papas fritas, cebolla y dos huevos.</p>
+                </div>
+            </div>
+            <div class="card-plato">
+                <img src="https://via.placeholder.com/300x200?text=Cerdo">
+                <div class="card-info">
+                    <div class="card-name"><span>Cerdo a lo Pobre</span> <span class="price">$14.900</span></div>
+                    <p class="desc">Chuletas de cerdo con papas, cebolla y huevos.</p>
+                </div>
+            </div>
+            </div>
+
+        <h2 class="category-title">Las Gredas</h2>
+        <div class="grid-comidas">
+            <div class="card-plato">
+                <img src="https://via.placeholder.com/300x200?text=Pastel+de+Choclo">
+                <div class="card-info">
+                    <div class="card-name"><span>Pastel de Choclo</span> <span class="price">$13.900</span></div>
+                    <p class="desc">Tradicional pino de carne, pollo y albahaca.</p>
+                </div>
+            </div>
+            <div class="card-plato">
+                <img src="https://via.placeholder.com/300x200?text=Chupe+Locos">
+                <div class="card-info">
+                    <div class="card-name"><span>Chupe de Locos</span> <span class="price">$16.900</span></div>
+                    <p class="desc">Suave crema de locos gratinada en greda.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2 id="bebestibles" class="category-title">Bebestibles y Cócteles</h2>
+        <div style="background: white; padding: 30px; border-radius: 10px;">
+            <div class="drink-item"><span>Pisco Sour Tradicional</span><div class="dots"></div><span class="price">$3.500</span></div>
+            <div class="drink-item"><span>Vaina Chilena</span><div class="dots"></div><span class="price">$4.000</span></div>
+            <div class="drink-item"><span>Aperol Spritz</span><div class="dots"></div><span class="price">$5.800</span></div>
+            <div class="drink-item"><span>Copa de Vino Tinto/Blanco</span><div class="dots"></div><span class="price">$2.800</span></div>
+            <div class="drink-item"><span>Cerveza 1 Litro (Cristal/Escudo)</span><div class="dots"></div><span class="price">$4.000</span></div>
+            <div class="drink-item"><span>Jugo Natural</span><div class="dots"></div><span class="price">$3.500</span></div>
+        </div>
+
+    </div>
+
+    <footer>&copy; 2026 La Tetera de Greda</footer>
+</body>
+</html>
