@@ -16,167 +16,471 @@
             --white: #ffffff;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); color: var(--text-dark); }
-        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); color: var(--text-dark); overflow-x: hidden; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--greda-brown); }
 
-        /* NAV */
-        nav { position: fixed; top: 0; width: 100%; background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 15px 50px; }
-        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--greda-red); text-decoration: none; }
-        .nav-links { display: flex; gap: 30px; }
-        .nav-links a { text-decoration: none; color: var(--greda-brown); font-weight: 600; transition: color 0.3s; }
-        .nav-links a:hover, .nav-links a.active { color: var(--greda-orange); }
-        .hamburger { display: none; flex-direction: column; cursor: pointer; gap: 5px; background: none; border: none; padding: 5px; }
-        .hamburger span { display: block; width: 25px; height: 3px; background: var(--greda-brown); border-radius: 3px; }
-        .mobile-menu { display: none; position: fixed; top: 60px; left: 0; width: 100%; background: white; padding: 20px; box-shadow: 0 5px 10px rgba(0,0,0,0.1); z-index: 999; flex-direction: column; gap: 15px; }
-        .mobile-menu.open { display: flex; }
-        .mobile-menu a { text-decoration: none; color: var(--greda-brown); font-weight: 600; font-size: 1.1rem; }
-
-        /* HERO */
-        .page-hero {
-            min-height: 55vh; padding-top: 60px;
-            background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+        /* ── HERO estilo alfa ── */
+        .hero {
+            min-height: 80vh;
+            background: linear-gradient(rgba(64, 27, 15, 0.78), rgba(122, 40, 29, 0.78)),
                         url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1600') center/cover fixed;
-            display: flex; flex-direction: column; justify-content: center;
-            align-items: center; text-align: center; color: white; padding: 40px 20px;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center; color: white; padding: 40px 20px 0;
         }
-        .page-hero h1 { color: white; font-size: 3.5rem; margin-bottom: 15px; text-shadow: 0 2px 10px rgba(0,0,0,0.4); }
-        .page-hero p { font-size: 1.2rem; font-style: italic; opacity: 0.9; }
+        .hero-logo { width: 220px; margin-bottom: 18px; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.6)); }
+        .hero h1 { color: white; font-size: 3.4rem; margin-bottom: 8px; text-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+        .hero-sub { font-size: 1.2rem; font-style: italic; opacity: 0.9; }
+        .hero-nav {
+            display: flex; justify-content: center; flex-wrap: wrap;
+            gap: 0; margin-top: 40px; width: 100%;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        .hero-nav a {
+            color: white; text-decoration: none; font-weight: 600;
+            font-size: 1rem; text-transform: uppercase; letter-spacing: 2px;
+            padding: 18px 30px; transition: 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        .hero-nav a:hover, .hero-nav a.active { background: rgba(255,255,255,0.1); border-bottom: 3px solid var(--greda-orange); }
 
-        /* FILTROS */
-        .filters-bar { background: white; padding: 30px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: sticky; top: 60px; z-index: 100; }
-        .filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
-        .filter-btn { background-color: transparent; border: 2px solid var(--greda-brown); color: var(--greda-brown); padding: 10px 24px; border-radius: 30px; cursor: pointer; font-weight: 600; transition: 0.3s; font-family: 'Poppins', sans-serif; font-size: 0.95rem; }
+        /* ── SECCIÓN MENÚ ── */
+        .menu-section { padding: 60px 20px; max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; color: var(--greda-red); font-size: 2.5rem; margin-bottom: 40px; }
+
+        /* ── FILTROS ── */
+        .filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 40px; }
+        .filter-btn { background-color: transparent; border: 2px solid var(--greda-brown); color: var(--greda-brown); padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: 600; transition: 0.3s; font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
         .filter-btn.active, .filter-btn:hover { background-color: var(--greda-brown); color: white; }
 
-        /* CARTA */
-        .menu-container { max-width: 1200px; margin: 50px auto; padding: 0 20px; }
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
-        .menu-item { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; transition: transform 0.3s; }
-        .menu-item:hover { transform: translateY(-4px); }
-        .plato-img { width: 100%; height: 200px; object-fit: cover; }
-        .item-content { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
-        .item-header { display: flex; justify-content: space-between; border-bottom: 1px solid #e0d5c1; padding-bottom: 10px; margin-bottom: 10px; }
-        .item-name { font-weight: 600; color: var(--greda-brown); }
-        .item-price { color: var(--greda-red); font-weight: 700; white-space: nowrap; margin-left: 10px; }
-        .item-desc { font-size: 0.9rem; color: #666; line-height: 1.6; }
-        .category-label { grid-column: 1 / -1; font-family: 'Playfair Display', serif; color: var(--greda-brown); font-size: 2rem; border-bottom: 2px solid var(--greda-orange); padding-bottom: 10px; margin-top: 30px; }
+        /* ── TARJETAS DE PLATOS ── */
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .menu-item { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); display: none; flex-direction: column; border-bottom: 5px solid var(--greda-red); }
+        .menu-item.show { display: flex; animation: fadeIn 0.4s; }
+        .plato-img { width: 100%; height: 200px; object-fit: cover; background-color: #eee; }
+        .item-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+        .item-name { font-weight: 600; color: var(--greda-brown); font-size: 1.05rem; padding-right: 10px; }
+        .item-price { color: var(--greda-orange); font-weight: 700; font-size: 1.1rem; white-space: nowrap; }
+        .item-desc { font-size: 0.9rem; color: #666; line-height: 1.5; margin-top: auto; }
 
-        /* BEBIDAS */
-        .drinks-wrapper { max-width: 820px; margin: 0 auto; display: none; padding-bottom: 40px; }
-        .drink-category-title { text-align: center; color: var(--greda-red); font-size: 1.8rem; margin: 40px 0 20px; border-bottom: 2px solid var(--greda-orange); padding-bottom: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── BEBESTIBLES EN LISTA ── */
+        .drinks-section { max-width: 820px; margin: 0 auto; padding: 0 20px 60px; display: none; }
+        .drink-category-title { font-family: 'Playfair Display', serif; text-align: center; color: var(--greda-red); font-size: 1.8rem; margin: 40px 0 20px; border-bottom: 2px solid var(--greda-orange); padding-bottom: 10px; }
         .drink-list-item { display: flex; align-items: baseline; margin-bottom: 14px; }
         .drink-name { font-weight: 600; color: var(--greda-brown); font-size: 1rem; }
         .drink-dots { flex-grow: 1; border-bottom: 2px dotted #ccc; margin: 0 15px; position: relative; top: -5px; }
         .drink-price { font-weight: 700; color: var(--text-dark); white-space: nowrap; }
 
-        /* FOOTER */
-        footer { background: #111; color: white; padding: 60px 20px 20px; margin-top: 60px; }
-        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 40px; margin-bottom: 40px; }
-        .footer-col h3 { color: var(--greda-orange); margin-bottom: 20px; }
-        .footer-col p, .footer-col a { color: #aaa; text-decoration: none; line-height: 2; display: block; margin-bottom: 5px; }
-        .footer-col a:hover { color: white; }
-        .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid #333; color: #777; font-size: 0.9rem; }
+        /* ── MAPA Y CONTACTO ── */
+        .social-map-section { background-color: var(--greda-brown); color: white; padding: 60px 20px; }
+        .social-map-container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 40px; align-items: center; }
+        @media (min-width: 768px) { .social-map-container { grid-template-columns: 1fr 1fr; } }
+        .contact-box h2 { color: var(--greda-orange); font-size: 2rem; margin-bottom: 20px; }
+        .contact-box p { line-height: 2.2; font-size: 1rem; color: #ddd; }
+        .contact-box p i { color: var(--greda-orange); margin-right: 10px; }
+        .contact-box a { color: #ddd; text-decoration: none; }
+        .contact-box a:hover { color: white; }
+        .instagram-link { display: inline-flex; align-items: center; gap: 10px; color: white; text-decoration: none; font-size: 1.1rem; background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); padding: 10px 22px; border-radius: 30px; margin-top: 20px; font-weight: 600; transition: opacity 0.3s; }
+        .instagram-link:hover { opacity: 0.9; }
+        .map-box iframe { width: 100%; height: 300px; border-radius: 15px; border: 3px solid var(--greda-orange); display: block; }
 
+        footer { text-align: center; padding: 20px; background-color: #1a0e08; color: #888; font-size: 0.9rem; }
         .whatsapp-float { position: fixed; width: 60px; height: 60px; bottom: 30px; right: 30px; background-color: #25d366; color: #FFF; border-radius: 50%; text-align: center; font-size: 32px; box-shadow: 2px 2px 10px rgba(0,0,0,0.25); z-index: 100; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: transform 0.3s; }
         .whatsapp-float:hover { transform: scale(1.1); }
 
         @media (max-width: 768px) {
-            nav { padding: 15px 20px; }
-            .nav-links { display: none; }
-            .hamburger { display: flex; }
-            .page-hero h1 { font-size: 2.4rem; }
-            .filters-bar { top: 56px; }
+            .hero h1 { font-size: 2.3rem; }
+            .hero-logo { width: 160px; }
+            .hero-nav a { padding: 14px 16px; font-size: 0.82rem; letter-spacing: 1px; }
         }
     </style>
 </head>
 <body>
 
-    <nav>
-        <a href="index.html" class="nav-logo">La Tetera de Greda</a>
-        <div class="nav-links">
+    <header class="hero">
+        <img src="logo tetera.png" alt="Logo La Tetera de Greda" class="hero-logo" onerror="this.style.display='none'">
+        <h1>La Tetera de Greda</h1>
+        <p class="hero-sub">Nuestra Carta Completa</p>
+        <nav class="hero-nav">
             <a href="index.html">Inicio</a>
             <a href="nosotros.html">Nosotros</a>
             <a href="carta.html" class="active">La Carta</a>
-            <a href="index.html#menu-dia">Menú del Día</a>
-        </div>
-        <button class="hamburger" onclick="toggleMenu()" aria-label="Menú">
-            <span></span><span></span><span></span>
-        </button>
-    </nav>
-
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="index.html" onclick="toggleMenu()">Inicio</a>
-        <a href="nosotros.html" onclick="toggleMenu()">Nosotros</a>
-        <a href="carta.html" onclick="toggleMenu()">La Carta</a>
-        <a href="index.html#menu-dia" onclick="toggleMenu()">Menú del Día</a>
-    </div>
-
-    <header class="page-hero">
-        <h1>Nuestra Carta</h1>
-        <p>Platos típicos, carnes, del mar y bebestibles selectos</p>
+            <a href="#contacto">Contacto</a>
+        </nav>
     </header>
 
-    <div class="filters-bar">
-        <div class="filters">
-            <button class="filter-btn active" onclick="showCategory('comida', this)">🍽️ Platos y Comidas</button>
-            <button class="filter-btn" onclick="showCategory('bebidas', this)">🍷 Bebestibles, Vinos y Cócteles</button>
-        </div>
-    </div>
+    <!-- SECCIÓN MENÚ COMPLETO -->
+    <section class="menu-section">
+        <h2 class="section-title">Nuestro Menú</h2>
 
-    <div class="menu-container">
-        <!-- COMIDAS -->
-        <div id="comida-container" class="menu-grid">
-            <div class="category-label">A lo Pobre</div>
-            <div class="menu-item">
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterMenu('todos', this)">Todos</button>
+            <button class="filter-btn" onclick="filterMenu('carnes', this)">Carnes y a lo Pobre</button>
+            <button class="filter-btn" onclick="filterMenu('mar', this)">Del Mar</button>
+            <button class="filter-btn" onclick="filterMenu('fondos', this)">Platos Tradicionales</button>
+            <button class="filter-btn" onclick="filterMenu('entradas', this)">Entradas y Ensaladas</button>
+            <button class="filter-btn" onclick="filterMenu('guarniciones', this)">Guarniciones</button>
+            <button class="filter-btn" onclick="filterMenu('ninos', this)">Menú Niños</button>
+            <button class="filter-btn" onclick="filterMenu('postres', this)">Postres</button>
+            <button class="filter-btn" onclick="filterMenu('bebestibles', this)">Bebestibles</button>
+        </div>
+
+        <!-- GRID PLATOS (oculto al seleccionar bebestibles) -->
+        <div class="menu-grid" id="menu-grid">
+
+            <!-- CARNES A LO POBRE -->
+            <div class="menu-item carnes todos show">
                 <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Lomo a lo Pobre" class="plato-img">
                 <div class="item-content">
                     <div class="item-header"><span class="item-name">Lomo a lo Pobre</span><span class="item-price">$16.900</span></div>
                     <p class="item-desc">Lomo a la plancha, papas fritas, cebolla caramelizada y dos huevos fritos.</p>
                 </div>
             </div>
-            <div class="menu-item">
-                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Cerdo a lo Pobre" class="plato-img">
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Trutro a lo Pobre" class="plato-img">
                 <div class="item-content">
-                    <div class="item-header"><span class="item-name">Cerdo a lo Pobre</span><span class="item-price">$14.900</span></div>
-                    <p class="item-desc">Chuletas de cerdo con papas fritas, cebolla caramelizada y huevos fritos.</p>
+                    <div class="item-header"><span class="item-name">Trutro a lo Pobre</span><span class="item-price">$11.900</span></div>
+                    <p class="item-desc">Trutro de pollo, papas fritas, cebolla caramelizada y dos huevos fritos.</p>
                 </div>
             </div>
-            <div class="menu-item">
-                <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=400" alt="Plateada a lo Pobre" class="plato-img">
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Chuleta a lo Pobre" class="plato-img">
                 <div class="item-content">
-                    <div class="item-header"><span class="item-name">Plateada a lo Pobre</span><span class="item-price">$17.900</span></div>
-                    <p class="item-desc">Plateada braseada con papas fritas, cebolla caramelizada y huevos.</p>
+                    <div class="item-header"><span class="item-name">Chuleta Ahumada a lo Pobre</span><span class="item-price">$14.850</span></div>
+                    <p class="item-desc">Doble chuleta a la plancha, papas fritas, cebolla caramelizada y dos huevos fritos.</p>
+                </div>
+            </div>
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Pechuga a lo Pobre" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Pechuga Deshuesada a lo Pobre</span><span class="item-price">$14.850</span></div>
+                    <p class="item-desc">Pechuga a la plancha, papas fritas, cebolla caramelizada y dos huevos fritos.</p>
+                </div>
+            </div>
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Suprema a lo Pobre" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Suprema Napolitana a lo Pobre</span><span class="item-price">$15.900</span></div>
+                    <p class="item-desc">Pechuga apanada con salsa, queso, papas fritas, cebolla y huevos.</p>
+                </div>
+            </div>
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Plateada a lo Pobre" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Plateada a lo Pobre</span><span class="item-price">$16.900</span></div>
+                    <p class="item-desc">Plateada a la cacerola, papas fritas, cebolla caramelizada y dos huevos fritos.</p>
+                </div>
+            </div>
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Costillar a lo Pobre" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Costillar Baby Ribs a lo Pobre</span><span class="item-price">$20.900</span></div>
+                    <p class="item-desc">Costillar en su salsa al horno, papas fritas, cebolla y huevos fritos.</p>
+                </div>
+            </div>
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Trutro con Agregado" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Trutro con Agregado</span><span class="item-price">$7.900</span></div>
+                    <p class="item-desc">Trutro de pollo con agregado a elección.</p>
+                </div>
+            </div>
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Pechuga con Agregado" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Pechuga con Agregado</span><span class="item-price">$10.900</span></div>
+                    <p class="item-desc">Pechuga a la plancha con agregado a elección.</p>
+                </div>
+            </div>
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Chuleta con Agregado" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Chuleta Ahumada con Agregado</span><span class="item-price">$10.900</span></div>
+                    <p class="item-desc">Doble chuleta a la plancha con agregado a elección.</p>
+                </div>
+            </div>
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Plateada Vino Tinto" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Plateada al Vino Tinto con Agregado</span><span class="item-price">$13.900</span></div>
+                    <p class="item-desc">Cocinada a fuego lento con agregado a elección.</p>
+                </div>
+            </div>
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Lomo con Agregado" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Lomo con Agregado</span><span class="item-price">$14.000</span></div>
+                    <p class="item-desc">Lomo a la plancha con agregado a elección.</p>
+                </div>
+            </div>
+            <div class="menu-item carnes todos show">
+                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Costillar con Agregado" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Costillar Baby Ribs con Agregado</span><span class="item-price">$15.900</span></div>
+                    <p class="item-desc">Costillar al horno con agregado a elección.</p>
                 </div>
             </div>
 
-            <div class="category-label">Las Gredas</div>
-            <div class="menu-item">
+            <!-- DEL MAR -->
+            <div class="menu-item mar carnes todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Merluza a lo Pobre" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Merluza Frita a lo Pobre</span><span class="item-price">$16.000</span></div>
+                    <p class="item-desc">Doble merluza, papas fritas, cebolla caramelizada y dos huevos fritos.</p>
+                </div>
+            </div>
+            <div class="menu-item mar carnes todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Atun a lo Pobre" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Atún a lo Pobre</span><span class="item-price">$17.900</span></div>
+                    <p class="item-desc">Atún a la plancha (mantequilla o sésamo), papas fritas, cebolla y huevos fritos.</p>
+                </div>
+            </div>
+            <div class="menu-item mar carnes todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Salmon a lo Pobre" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Salmón a lo Pobre</span><span class="item-price">$18.900</span></div>
+                    <p class="item-desc">Salmón a la plancha o mantequilla, papas fritas, cebolla y huevos fritos.</p>
+                </div>
+            </div>
+            <div class="menu-item mar carnes todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Reineta a lo Pobre" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Reineta a lo Pobre</span><span class="item-price">$19.900</span></div>
+                    <p class="item-desc">Reineta a la plancha o frita, papas fritas, cebolla y huevos fritos.</p>
+                </div>
+            </div>
+            <div class="menu-item mar todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Merluza Agregado" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Merluza Frita con Agregado</span><span class="item-price">$13.900</span></div>
+                    <p class="item-desc">Doble merluza con agregado a elección.</p>
+                </div>
+            </div>
+            <div class="menu-item mar todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Atun Agregado" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Atún con Agregado</span><span class="item-price">$14.900</span></div>
+                    <p class="item-desc">Atún a la plancha (mantequilla o sésamo) con agregado a elección.</p>
+                </div>
+            </div>
+            <div class="menu-item mar todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Salmon Agregado" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Salmón con Agregado</span><span class="item-price">$14.900</span></div>
+                    <p class="item-desc">Salmón a la plancha o mantequilla con agregado.</p>
+                </div>
+            </div>
+            <div class="menu-item mar todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Reineta Agregado" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Reineta con Agregado</span><span class="item-price">$15.900</span></div>
+                    <p class="item-desc">Reineta frita o a la plancha con agregado.</p>
+                </div>
+            </div>
+            <div class="menu-item mar todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Chupe Locos" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Chupe de Locos</span><span class="item-price">$15.900</span></div>
+                    <p class="item-desc">Preparado con locos frescos, gratinado al horno.</p>
+                </div>
+            </div>
+            <div class="menu-item mar todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Pastel Jaiba" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Pastel de Jaiba</span><span class="item-price">$16.900</span></div>
+                    <p class="item-desc">Preparado con jaiba fresca, cubierto de queso fundido.</p>
+                </div>
+            </div>
+            <div class="menu-item mar todos show">
+                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Paila Marina" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Paila Marina</span><span class="item-price">$16.900</span></div>
+                    <p class="item-desc">Aromático caldo de mariscos surtidos con toque de cilantro.</p>
+                </div>
+            </div>
+
+            <!-- PLATOS TRADICIONALES -->
+            <div class="menu-item fondos todos show">
                 <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Pastel de Choclo" class="plato-img">
                 <div class="item-content">
                     <div class="item-header"><span class="item-name">Pastel de Choclo</span><span class="item-price">$13.900</span></div>
-                    <p class="item-desc">Base de pino, pollo a la plancha, huevo duro, aceituna y pastelera de choclo.</p>
+                    <p class="item-desc">Base de pino, pollo a la plancha, huevo, aceituna y pastelera de choclo.</p>
                 </div>
             </div>
-            <div class="menu-item">
-                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Chupe de Locos" class="plato-img">
+            <div class="menu-item fondos todos show">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Cazuela Vacuno" class="plato-img">
                 <div class="item-content">
-                    <div class="item-header"><span class="item-name">Chupe de Locos</span><span class="item-price">$16.900</span></div>
-                    <p class="item-desc">Suave crema de locos gratinada en greda, servida caliente.</p>
+                    <div class="item-header"><span class="item-name">Cazuela de Vacuno</span><span class="item-price">$12.000</span></div>
+                    <p class="item-desc">Con plateada, papa, zapallo, choclo, porotos verdes y cilantro.</p>
+                </div>
+            </div>
+            <div class="menu-item fondos todos show">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Lomo Tetera" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Lomo Tetera</span><span class="item-price">$14.000</span></div>
+                    <p class="item-desc">Acompañado de arroz y papas fritas, coronado con salsa de alcaparras.</p>
+                </div>
+            </div>
+            <div class="menu-item fondos todos show">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Guatitas" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Guatitas con Agregado</span><span class="item-price">$8.950</span></div>
+                    <p class="item-desc">Italianas o a la jardinera con salsa de tomate casera.</p>
+                </div>
+            </div>
+            <div class="menu-item fondos todos show">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Chorrillana" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Chorrillana Individual</span><span class="item-price">$11.900</span></div>
+                    <p class="item-desc">Tradicional: carne, cebolla caramelizada, chorizo y huevo frito.</p>
+                </div>
+            </div>
+            <div class="menu-item fondos todos show">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Lasagna" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Lasagna Mixta</span><span class="item-price">$13.900</span></div>
+                    <p class="item-desc">Con salsa boloñesa, bechamel, masa casera y queso.</p>
+                </div>
+            </div>
+            <div class="menu-item fondos todos show">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Ravioles" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Ravioles Caseros</span><span class="item-price">$13.900</span></div>
+                    <p class="item-desc">De mechada o pollo espinaca con salsa a elección.</p>
+                </div>
+            </div>
+            <div class="menu-item fondos todos show">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Suprema Napolitana" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Suprema Napolitana</span><span class="item-price">$14.000</span></div>
+                    <p class="item-desc">Pollo apanado, salsa de tomate y queso gratinado.</p>
+                </div>
+            </div>
+            <div class="menu-item fondos todos show">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Opciones Vegetarianas" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Opciones Vegetarianas</span><span class="item-price">Desde $3.800</span></div>
+                    <p class="item-desc">Panaché verduras ($3.800), Falafel ($6.900), Chorrillana Vegetariana ($11.500).</p>
                 </div>
             </div>
 
-            <div class="category-label">Del Mar</div>
-            <div class="menu-item">
-                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Merluza Frita" class="plato-img">
+            <!-- ENTRADAS Y ENSALADAS -->
+            <div class="menu-item entradas todos show">
+                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=400" alt="Consome" class="plato-img">
                 <div class="item-content">
-                    <div class="item-header"><span class="item-name">Merluza Frita con Agregado</span><span class="item-price">$13.900</span></div>
-                    <p class="item-desc">Doble merluza crujiente con agregado a elección.</p>
+                    <div class="item-header"><span class="item-name">Consomé Casero</span><span class="item-price">$1.800</span></div>
                 </div>
             </div>
-        </div>
+            <div class="menu-item entradas todos show">
+                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=400" alt="Camarones Pilpil" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Camarones al Pilpil</span><span class="item-price">$8.900</span></div>
+                    <p class="item-desc">En aceite de oliva, ajo, ají cacho de cabra, servido en greda.</p>
+                </div>
+            </div>
+            <div class="menu-item entradas todos show">
+                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=400" alt="Locos" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Entrada de Locos (4 un.)</span><span class="item-price">$16.900</span></div>
+                    <p class="item-desc">Acompañado de mayonesa casera y pebre.</p>
+                </div>
+            </div>
+            <div class="menu-item entradas todos show">
+                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=400" alt="Ostiones Parmesana" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Ostiones o Machas Parmesana</span><span class="item-price">$14.900</span></div>
+                    <p class="item-desc">Con crema, queso y pimienta, gratinados al horno.</p>
+                </div>
+            </div>
+            <div class="menu-item entradas todos show">
+                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=400" alt="Ensaladas" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Variedad de Ensaladas</span><span class="item-price">Desde $3.200</span></div>
+                    <p class="item-desc">Surtida, Chilena, Especial (palmitos/palta), César, Tetera.</p>
+                </div>
+            </div>
 
-        <!-- BEBIDAS -->
-        <div id="bebidas-container" class="drinks-wrapper">
+            <!-- GUARNICIONES -->
+            <div class="menu-item guarniciones todos show">
+                <img src="https://images.unsplash.com/photo-1585032849925-15ff480e0c8b?q=80&w=400" alt="Papas Fritas" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Papas Fritas Individuales</span><span class="item-price">$3.200</span></div>
+                </div>
+            </div>
+            <div class="menu-item guarniciones todos show">
+                <img src="https://images.unsplash.com/photo-1585032849925-15ff480e0c8b?q=80&w=400" alt="Papas Fritas Fam" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Papas Fritas Familiares</span><span class="item-price">$6.000</span></div>
+                </div>
+            </div>
+            <div class="menu-item guarniciones todos show">
+                <img src="https://images.unsplash.com/photo-1585032849925-15ff480e0c8b?q=80&w=400" alt="Acompañamientos" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Otros Acompañamientos</span><span class="item-price">Varios</span></div>
+                    <p class="item-desc">Arroz ($2.200), Puré ($2.500), Papas Mayo ($2.500), Papas Salteadas ($3.000), Papas a la crema ($3.800).</p>
+                </div>
+            </div>
+
+            <!-- MENÚ NIÑOS -->
+            <div class="menu-item ninos todos show">
+                <img src="https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=400" alt="Salchipapas" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Salchipapas</span><span class="item-price">$6.500</span></div>
+                </div>
+            </div>
+            <div class="menu-item ninos todos show">
+                <img src="https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=400" alt="Nuggets" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Nuggets con Papas Fritas</span><span class="item-price">$6.500</span></div>
+                </div>
+            </div>
+            <div class="menu-item ninos todos show">
+                <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=400" alt="Filetes Pollo" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Filetes con Papas Fritas</span><span class="item-price">$6.500</span></div>
+                </div>
+            </div>
+
+            <!-- POSTRES -->
+            <div class="menu-item postres todos show">
+                <img src="https://images.unsplash.com/photo-1551024506-0cb4a1cb1cdd?q=80&w=400" alt="Leche Asada" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Leche Asada</span><span class="item-price">$4.000</span></div>
+                </div>
+            </div>
+            <div class="menu-item postres todos show">
+                <img src="https://images.unsplash.com/photo-1551024506-0cb4a1cb1cdd?q=80&w=400" alt="Copas" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Copas de Helado / Durazno</span><span class="item-price">$4.000+</span></div>
+                </div>
+            </div>
+            <div class="menu-item postres todos show">
+                <img src="https://images.unsplash.com/photo-1551024506-0cb4a1cb1cdd?q=80&w=400" alt="Cheesecake" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Cheesecake de Maracuyá</span><span class="item-price">$4.500</span></div>
+                </div>
+            </div>
+            <div class="menu-item postres todos show">
+                <img src="https://images.unsplash.com/photo-1551024506-0cb4a1cb1cdd?q=80&w=400" alt="Tiramisu" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Tiramisú</span><span class="item-price">$4.800</span></div>
+                </div>
+            </div>
+            <div class="menu-item postres todos show">
+                <img src="https://images.unsplash.com/photo-1551024506-0cb4a1cb1cdd?q=80&w=400" alt="Postre Tetera" class="plato-img">
+                <div class="item-content">
+                    <div class="item-header"><span class="item-name">Postre Tetera / Papayas</span><span class="item-price">Desde $4.800</span></div>
+                </div>
+            </div>
+
+        </div><!-- fin menu-grid -->
+
+        <!-- BEBESTIBLES EN LISTA (se muestra solo al filtrar) -->
+        <div class="drinks-section" id="drinks-section">
             <h3 class="drink-category-title">Aperitivos y Cócteles</h3>
             <div class="drink-list-item"><span class="drink-name">Pisco Sour Tradicional</span><div class="drink-dots"></div><span class="drink-price">$3.500</span></div>
             <div class="drink-list-item"><span class="drink-name">Vaina Chilena</span><div class="drink-dots"></div><span class="drink-price">$4.000</span></div>
@@ -190,6 +494,7 @@
             <div class="drink-list-item"><span class="drink-name">Botellín Carmen / 120</span><div class="drink-dots"></div><span class="drink-price">$3.000</span></div>
             <div class="drink-list-item"><span class="drink-name">Gato 3/4</span><div class="drink-dots"></div><span class="drink-price">$7.000</span></div>
             <div class="drink-list-item"><span class="drink-name">Undurraga / Carmen 3/4</span><div class="drink-dots"></div><span class="drink-price">$7.500</span></div>
+            <div class="drink-list-item"><span class="drink-name">Misiones de Rengo</span><div class="drink-dots"></div><span class="drink-price">$8.500</span></div>
             <div class="drink-list-item"><span class="drink-name">Vino Obeja Negra</span><div class="drink-dots"></div><span class="drink-price">$9.800</span></div>
             <div class="drink-list-item"><span class="drink-name">Casillero Red Blend</span><div class="drink-dots"></div><span class="drink-price">$14.900</span></div>
             <div class="drink-list-item"><span class="drink-name">Toro de Piedra</span><div class="drink-dots"></div><span class="drink-price">$19.000</span></div>
@@ -207,58 +512,67 @@
             <div class="drink-list-item"><span class="drink-name">Jugo Natural / Limonada Tradicional</span><div class="drink-dots"></div><span class="drink-price">$3.500</span></div>
             <div class="drink-list-item"><span class="drink-name">Limonada Menta Jengibre con Miel</span><div class="drink-dots"></div><span class="drink-price">$4.800</span></div>
             <div class="drink-list-item"><span class="drink-name">Taza de Té / Agua de Hierbas</span><div class="drink-dots"></div><span class="drink-price">$1.500</span></div>
-            <div class="drink-list-item"><span class="drink-name">Café Espresso Grano</span><div class="drink-dots"></div><span class="drink-price">$2.500</span></div>
-            <div class="drink-list-item"><span class="drink-name">Café Capuccino Grano</span><div class="drink-dots"></div><span class="drink-price">$3.500</span></div>
+            <div class="drink-list-item"><span class="drink-name">Café Espresso en Grano</span><div class="drink-dots"></div><span class="drink-price">$2.500</span></div>
+            <div class="drink-list-item"><span class="drink-name">Café Americano / Latte / Capuccino</span><div class="drink-dots"></div><span class="drink-price">$3.500</span></div>
         </div>
-    </div>
+
+    </section>
+
+    <!-- CONTACTO + MAPA -->
+    <section id="contacto" class="social-map-section">
+        <div class="social-map-container">
+            <div class="contact-box">
+                <h2>¡Ven a visitarnos!</h2>
+                <p><i class="fa-solid fa-location-dot"></i> Santa Ana 98, Villa Alemana.</p>
+                <p><i class="fa-regular fa-clock"></i> Lunes a Domingo, 12:00 – 18:00 hrs</p>
+                <p><i class="fa-brands fa-whatsapp"></i> <a href="https://wa.me/56971482268">+569 7148 2268</a></p>
+                <p><i class="fa-solid fa-phone"></i> <a href="tel:322220409">32 322 0409</a></p>
+                <p style="margin-top: 15px;">¿Nos visitas? Etiquétanos en tus fotos y sé parte de la familia de La Tetera de Greda.</p>
+                <a href="https://www.instagram.com/lateteradegreda?igsh=MWE2cnlhZmY2NDV6aA==" target="_blank" class="instagram-link">
+                    <i class="fa-brands fa-instagram"></i> Síguenos @lateteradegreda
+                </a>
+            </div>
+            <div class="map-box">
+                <iframe src="https://maps.google.com/maps?q=Santa%20Ana%2098,%20Villa%20Alemana,%20Chile&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </div>
+    </section>
 
     <footer>
-        <div class="footer-content">
-            <div class="footer-col">
-                <h3>La Tetera de Greda</h3>
-                <p>Restobar de comida típica chilena en el corazón de Villa Alemana.</p>
-            </div>
-            <div class="footer-col">
-                <h3>Navegación</h3>
-                <a href="index.html">Inicio</a>
-                <a href="nosotros.html">Nosotros</a>
-                <a href="carta.html">La Carta</a>
-                <a href="index.html#menu-dia">Menú del Día</a>
-            </div>
-            <div class="footer-col">
-                <h3>Horarios & Contacto</h3>
-                <p><i class="fa-regular fa-clock" style="color:var(--greda-orange); margin-right:5px;"></i> <strong style="color:white;">Lunes a Domingo</strong></p>
-                <p>12:00 – 18:00 hrs</p>
-                <p style="margin-top:10px;"><i class="fa-solid fa-location-dot" style="color:var(--greda-orange); margin-right:5px;"></i> Santa Ana 98, Villa Alemana</p>
-                <a href="https://wa.me/56971482268"><i class="fa-brands fa-whatsapp" style="color:var(--greda-orange); margin-right:5px;"></i> +569 7148 2268</a>
-                <a href="https://www.instagram.com/lateteradegreda" target="_blank"><i class="fa-brands fa-instagram" style="color:var(--greda-orange); margin-right:5px;"></i> @lateteradegreda</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>© 2026 Restobar La Tetera de Greda — Villa Alemana.</p>
-        </div>
+        <p>© 2026 Restobar La Tetera de Greda. Todos los derechos reservados.</p>
     </footer>
 
-    <a href="https://wa.me/56971482268?text=Hola,%20vengo%20desde%20su%20página%20web." class="whatsapp-float" target="_blank">
+    <a href="https://wa.me/56971482268?text=Hola,%20vengo%20desde%20su%20página%20web%20y%20me%20gustaría%20hacer%20una%20consulta." class="whatsapp-float" target="_blank">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
 
     <script>
-        function showCategory(category, btn) {
+        function filterMenu(category, btn) {
+            // Actualizar botones
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const comida = document.getElementById('comida-container');
-            const bebidas = document.getElementById('bebidas-container');
-            if (category === 'comida') {
-                comida.style.display = 'grid';
-                bebidas.style.display = 'none';
+
+            const grid = document.getElementById('menu-grid');
+            const drinks = document.getElementById('drinks-section');
+
+            if (category === 'bebestibles') {
+                // Mostrar lista de bebidas, ocultar grid
+                grid.style.display = 'none';
+                drinks.style.display = 'block';
             } else {
-                comida.style.display = 'none';
-                bebidas.style.display = 'block';
+                // Ocultar bebidas, mostrar grid
+                grid.style.display = 'grid';
+                drinks.style.display = 'none';
+
+                const items = document.querySelectorAll('.menu-item');
+                items.forEach(item => {
+                    if (item.classList.contains(category)) {
+                        item.classList.add('show');
+                    } else {
+                        item.classList.remove('show');
+                    }
+                });
             }
-        }
-        function toggleMenu() {
-            document.getElementById('mobileMenu').classList.toggle('open');
         }
     </script>
 </body>
