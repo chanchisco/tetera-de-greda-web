@@ -3,344 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Tetera de Greda | Restobar en Villa Alemana</title>
-    <meta property="og:title" content="La Tetera de Greda | Restobar">
-    <meta property="og:description" content="Comida Típica Chilena en Villa Alemana. Menú del día, carnes y más.">
-    <meta property="og:type" content="website">
-
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>La Tetera de Greda | Inicio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
         :root {
-            --greda-red: #7a281d; 
-            --greda-brown: #401b0f; 
-            --greda-orange: #e58729; 
-            --bg-light: #faf3e0; 
-            --text-dark: #2c1e16;
-            --white: #ffffff;
+            --greda-profundo: #4b2e1e;
+            --arcilla: #a0522d;
+            --tierra-clara: #d2b48c;
+            --crema: #fdfaf5;
+            --texto: #3e2723;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); color: var(--text-dark); overflow-x: hidden; }
-        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; color: var(--greda-brown); }
-
-        /* BARRA DE NAVEGACIÓN */
-        nav { position: fixed; top: 0; width: 100%; background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 15px 50px; }
-        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--greda-red); text-decoration: none; }
-        .nav-links { display: flex; gap: 30px; }
-        .nav-links a { text-decoration: none; color: var(--greda-brown); font-weight: 600; transition: color 0.3s; }
-        .nav-links a:hover { color: var(--greda-orange); }
-
-        /* PORTADA (HERO) */
-        .hero { height: 100vh; background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1600') center/cover fixed; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; padding: 20px; margin-top: 60px; }
-        .hero img { width: 250px; margin-bottom: 20px; filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.5)); }
-        .hero h1 { color: white; font-size: 4rem; margin-bottom: 10px; }
-        .hero p { font-size: 1.5rem; font-style: italic; }
-
-        /* SECCIONES DIVIDIDAS (SPLIT) */
-        .split-section { display: flex; flex-wrap: wrap; min-height: 60vh; }
-        .split-text { flex: 1; min-width: 300px; padding: 80px 10%; display: flex; flex-direction: column; justify-content: center; background-color: var(--bg-light); }
-        .split-text h2 { font-size: 2.5rem; margin-bottom: 20px; color: var(--greda-red); }
-        .split-text p { font-size: 1.1rem; line-height: 1.8; margin-bottom: 30px; }
-        .split-image { flex: 1; min-width: 300px; background-size: cover; background-position: center; min-height: 400px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--crema); color: var(--texto); line-height: 1.6; }
         
-        .btn-outline { display: inline-block; padding: 12px 30px; border: 2px solid var(--greda-brown); color: var(--greda-brown); text-decoration: none; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; align-self: flex-start; }
-        .btn-outline:hover { background: var(--greda-brown); color: white; }
-
-        /* RESEÑAS / TESTIMONIOS */
-        .reviews { background-color: var(--greda-brown); color: white; padding: 60px 20px; text-align: center; }
-        .reviews h2 { color: var(--greda-orange); margin-bottom: 40px; }
-        .review-grid { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
-        .review-card { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 10px; max-width: 350px; text-align: left; }
-        .review-card i { color: #f1c40f; margin-bottom: 15px; }
-        .review-card p { font-style: italic; margin-bottom: 15px; font-size: 0.95rem; }
-        .review-author { font-weight: 600; color: var(--greda-orange); }
-
-        /* DESTACADO INSTAGRAM */
-        .instagram-highlight { padding: 80px 20px; text-align: center; background: white; }
-        .instagram-highlight h2 { margin-bottom: 15px; color: var(--greda-red); }
-        .instagram-embed-container { max-width: 500px; margin: 30px auto; border: 1px solid #ddd; padding: 20px; background: #fafafa; border-radius: 10px; }
-
-        /* MENÚ DEL DÍA */
-        .menu-dia-section { padding: 80px 20px; background: var(--bg-light); text-align: center; }
-        .menu-dia-container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-radius: 15px; border-top: 5px solid var(--greda-red); }
-        .menu-dia-info { margin-bottom: 30px; text-align: left; background: #fdf8f5; padding: 20px; border-radius: 10px; border-left: 4px solid var(--greda-orange); }
-        .menu-dia-img { width: 100%; max-width: 500px; border-radius: 10px; margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-
-        /* CARRUSEL DE IMÁGENES */
-        .scrolling-gallery { display: flex; overflow-x: auto; gap: 15px; padding: 20px; background: var(--greda-brown); scroll-snap-type: x mandatory; }
-        .scrolling-gallery::-webkit-scrollbar { height: 8px; }
-        .scrolling-gallery::-webkit-scrollbar-thumb { background: var(--greda-orange); border-radius: 10px; }
-        .gallery-item { flex: 0 0 300px; height: 300px; scroll-snap-align: start; border-radius: 10px; overflow: hidden; }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
-        .gallery-item:hover img { transform: scale(1.1); }
-
-        /* CARTA / MENÚ PRINCIPAL */
-        .carta-section { padding: 80px 20px; background: white; }
-        .filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 50px; }
-        .filter-btn { background-color: transparent; border: 2px solid var(--greda-brown); color: var(--greda-brown); padding: 8px 18px; border-radius: 30px; cursor: pointer; font-weight: 600; transition: 0.3s; }
-        .filter-btn.active, .filter-btn:hover { background-color: var(--greda-brown); color: white; }
-
-        /* Grilla de Comida (Tarjetas) */
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
-        .menu-item { background: var(--bg-light); border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
-        .plato-img { width: 100%; height: 200px; object-fit: cover; }
-        .item-content { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
-        .item-header { display: flex; justify-content: space-between; border-bottom: 1px solid #e0d5c1; padding-bottom: 10px; margin-bottom: 10px; }
-        .item-name { font-weight: 600; color: var(--greda-brown); }
-        .item-price { color: var(--greda-red); font-weight: 700; }
-        .item-desc { font-size: 0.9rem; color: #555; }
-
-        /* Lista de Bebidas (Estilo Elegante/Restaurante) */
-        .drinks-container { max-width: 800px; margin: 0 auto; display: none; } /* Oculto por defecto */
-        .drink-category-title { text-align: center; color: var(--greda-red); font-size: 2rem; margin: 40px 0 20px; border-bottom: 2px solid var(--greda-orange); padding-bottom: 10px; }
-        .drink-list-item { display: flex; align-items: baseline; margin-bottom: 15px; }
-        .drink-name { font-weight: 600; color: var(--greda-brown); font-size: 1.1rem; }
-        .drink-dots { flex-grow: 1; border-bottom: 2px dotted #ccc; margin: 0 15px; position: relative; top: -5px; }
-        .drink-price { font-weight: 700; color: var(--text-dark); }
-
-        /* FOOTER */
-        footer { background: #111; color: white; padding: 60px 20px 20px; }
-        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
-        .footer-col h3 { color: var(--greda-orange); margin-bottom: 20px; }
-        .footer-col p, .footer-col a { color: #aaa; text-decoration: none; line-height: 1.8; display: block; margin-bottom: 10px; }
-        .footer-col a:hover { color: white; }
-        .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid #333; color: #777; font-size: 0.9rem; }
-
-        .whatsapp-float { position: fixed; width: 60px; height: 60px; bottom: 30px; right: 30px; background-color: #25d366; color: #FFF; border-radius: 50px; text-align: center; font-size: 35px; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); z-index: 100; display: flex; align-items: center; justify-content: center; text-decoration: none; }
-
-        @media (max-width: 768px) {
-            .nav-links { display: none; /* Menú hamburguesa necesario para móviles en el futuro */ }
-            .hero h1 { font-size: 2.5rem; }
-            .split-text { padding: 40px 20px; }
+        /* HERO SECTION DIFUMINADO */
+        .hero { 
+            height: 80vh; 
+            background: linear-gradient(rgba(75, 46, 30, 0.6), rgba(75, 46, 30, 0.6)), 
+                        url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1600');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            padding: 20px;
+            backdrop-filter: blur(3px); /* Efecto difuminado suave */
         }
+        .hero img { width: 180px; margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: 3.5rem; margin-bottom: 10px; }
+        
+        /* NAVEGACIÓN ESTILO SUBTÍTULO */
+        .main-nav { display: flex; justify-content: center; gap: 40px; padding: 40px 20px; background: var(--crema); }
+        .main-nav a { text-decoration: none; color: var(--arcilla); font-weight: 600; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; border-bottom: 2px solid transparent; }
+        .main-nav a:hover { border-bottom: 2px solid var(--arcilla); }
+
+        /* SECCIONES RESUMEN */
+        .section-split { display: flex; flex-wrap: wrap; align-items: center; min-height: 500px; }
+        .split-text { flex: 1; padding: 60px 8%; min-width: 350px; }
+        .split-img { flex: 1; min-width: 350px; height: 500px; background-size: cover; background-position: center; }
+        .split-text h2 { font-family: 'Playfair Display', serif; color: var(--greda-profundo); font-size: 2.5rem; margin-bottom: 20px; }
+        .btn-greda { display: inline-block; padding: 12px 30px; background: var(--arcilla); color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; transition: 0.3s; }
+        .btn-greda:hover { background: var(--greda-profundo); }
+
+        /* FOOTER TERROSO */
+        footer { background: var(--greda-profundo); color: var(--tierra-clara); padding: 50px 20px; text-align: center; }
+        .footer-info { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; text-align: left; }
+        .footer-bottom { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(210, 180, 140, 0.2); font-size: 0.9rem; }
+        
+        .whatsapp-btn { position: fixed; bottom: 30px; right: 30px; background: #25d366; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 100; }
     </style>
 </head>
 <body>
 
-    <nav>
-        <a href="#inicio" class="nav-logo">La Tetera de Greda</a>
-        <div class="nav-links">
-            <a href="#inicio">Inicio</a>
-            <a href="#nosotros">Nosotros</a>
-            <a href="#menu-dia">Menú del Día</a>
-            <a href="#carta">La Carta</a>
-        </div>
-    </nav>
-
-    <header id="inicio" class="hero">
-        <img src="logo tetera.png" alt="Logo La Tetera de Greda" onerror="this.src='https://via.placeholder.com/200x200?text=Tu+Logo'">
-        <h1>Sabor con Tradición</h1>
-        <p>Restobar • Comida Típica Chilena</p>
+    <header class="hero">
+        <img src="logo tetera.png" alt="Logo" onerror="this.src='https://via.placeholder.com/150?text=Logo'">
+        <h1>La Tetera de Greda</h1>
+        <p>Sabor, Tradición y Familia</p>
     </header>
 
-    <section class="split-section">
+    <nav class="main-nav">
+        <a href="index.html">Inicio</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="carta.html">La Carta</a>
+    </nav>
+
+    <section class="section-split">
         <div class="split-text">
-            <h2>Nuestra Historia</h2>
-            <p>En La Tetera de Greda, rescatamos los sabores de la cocina de antaño. Somos un restaurante familiar ubicado en el corazón de Villa Alemana, dedicados a ofrecerte los platos típicos chilenos que reconfortan el alma, preparados con el mismo amor que en casa.</p>
-            <a href="#nosotros" class="btn-outline">Conocer más</a>
+            <h2>Nuestra Cocina</h2>
+            <p>Disfruta de los mejores platos típicos en el corazón de Villa Alemana. Desde nuestra famosa Plateada hasta el Pastel de Choclo en greda caliente.</p>
+            <a href="carta.html" class="btn-greda">Ver la Carta</a>
         </div>
-        <div class="split-image" style="background-image: url('https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1000');"></div>
+        <div class="split-img" style="background-image: url('https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=800');"></div>
     </section>
 
-    <section class="split-section">
-        <div class="split-image" style="background-image: url('https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=1000');"></div>
+    <section class="section-split" style="flex-direction: row-reverse;">
         <div class="split-text">
-            <h2>Nuestra Carta</h2>
-            <p>Desde nuestra famosa Plateada a lo Pobre, exquisito Pastel de Choclo, hasta frescas opciones del mar como el Chupe de Locos o Merluza frita. Acompaña tus comidas con nuestra selecta carta de vinos y aperitivos tradicionales.</p>
-            <a href="#carta" class="btn-outline">Ver la Carta Completa</a>
+            <h2>Tradición en cada plato</h2>
+            <p>Conoce más sobre nuestra historia, nuestros años de trayectoria y por qué somos el restaurante favorito de la zona.</p>
+            <a href="nosotros.html" class="btn-greda">Nuestra Historia</a>
         </div>
-    </section>
-
-    <section class="reviews">
-        <h2>Lo que dicen nuestros clientes</h2>
-        <div class="review-grid">
-            <div class="review-card">
-                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                <p>"Excelente atención y comida casera de primer nivel. El pastel de choclo estaba increíble. Ambiente muy familiar y acogedor."</p>
-                <span class="review-author">- María José T.</span>
-            </div>
-            <div class="review-card">
-                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                <p>"Las mejores carnes a lo pobre de Villa Alemana. Porciones contundentes y el pisco sour tradicional es una maravilla."</p>
-                <span class="review-author">- Carlos R.</span>
-            </div>
-            <div class="review-card">
-                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
-                <p>"Muy buen menú de almuerzo durante la semana. Te atienden rápido y todo tiene ese sabor a comida hecha en casa."</p>
-                <span class="review-author">- Daniela V.</span>
-            </div>
-        </div>
-    </section>
-
-    <section class="instagram-highlight">
-        <h2>Destacado de la Semana</h2>
-        <p>Síguenos en nuestras redes sociales para enterarte de todas nuestras novedades.</p>
-        <div class="instagram-embed-container">
-            <p style="color:#888;"><i>[Aquí irá tu publicación de Instagram. Solo debes copiar el link y pegarlo en el código.]</i></p>
-            <a href="https://www.instagram.com/lateteradegreda?igsh=MWE2cnlhZmY2NDV6aA==" target="_blank" class="btn-outline" style="margin-top:20px;">Ir al Instagram</a>
-        </div>
-    </section>
-
-    <section id="nosotros" style="padding-top: 80px;">
-        <div style="text-align: center; max-width: 800px; margin: 0 auto 40px; padding: 0 20px;">
-            <h2 style="color: var(--greda-red); font-size: 2.5rem; margin-bottom: 20px;">Sobre Nosotros</h2>
-            <p style="line-height: 1.8;">Con años de historia en Villa Alemana, La Tetera de Greda nació con el sueño de preservar las recetas de nuestras abuelas. Cada plato es un viaje en el tiempo, utilizando ingredientes locales, gredas del sur y mucho cariño. Somos el punto de encuentro perfecto para familias y amigos.</p>
-        </div>
-        
-        <div class="scrolling-gallery">
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=500" alt="Ambiente"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=500" alt="Comida"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=500" alt="Detalles"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=500" alt="Bebidas"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500" alt="Platos"></div>
-        </div>
-    </section>
-
-    <section id="menu-dia" class="menu-dia-section">
-        <h2 style="color: var(--greda-red); font-size: 2.5rem; margin-bottom: 20px;">Menú del Día</h2>
-        <div class="menu-dia-container">
-            <div class="menu-dia-info">
-                <h3 style="color: var(--greda-brown); margin-bottom: 10px;"><i class="fa-regular fa-clock"></i> Lunes a Viernes de 12:30 a 17:00 hrs</h3>
-                <p><strong>¿Qué incluye?</strong></p>
-                <ul style="list-style: none; margin-top: 10px; line-height: 1.8;">
-                    <li><i class="fa-solid fa-utensils" style="color:var(--greda-orange)"></i> Dos opciones de Entradas</li>
-                    <li><i class="fa-solid fa-utensils" style="color:var(--greda-orange)"></i> Cuatro - Cinco opciones de Fondo</li>
-                    <li><i class="fa-solid fa-utensils" style="color:var(--greda-orange)"></i> Dos opciones de Postre</li>
-                </ul>
-                <p style="margin-top: 15px; color: green; font-weight: 600;"><i class="fa-solid fa-leaf"></i> Siempre tenemos opciones vegetarianas</p>
-            </div>
-            
-            <p><strong>Novedades de hoy:</strong></p>
-            <img src="menu-del-dia.jpg" alt="Menú de Hoy" class="menu-dia-img" onerror="this.src='https://via.placeholder.com/500x700?text=Sube+tu+imagen+menu-del-dia.jpg'">
-            <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">(Para servir o llevar)</p>
-        </div>
-    </section>
-
-    <section id="carta" class="carta-section">
-        <h2 style="text-align: center; color: var(--greda-red); font-size: 2.5rem; margin-bottom: 40px;">Nuestra Carta Completa</h2>
-        
-        <div class="filters">
-            <button class="filter-btn active" onclick="showCategory('comida')">Platos y Comidas</button>
-            <button class="filter-btn" onclick="showCategory('bebidas')">Bebestibles, Vinos y Cócteles</button>
-        </div>
-
-        <div id="comida-container" class="menu-grid">
-            
-            <div class="menu-item">
-                <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=400" alt="Lomo a lo Pobre" class="plato-img">
-                <div class="item-content">
-                    <div class="item-header"><span class="item-name">Lomo a lo Pobre</span><span class="item-price">$16.900</span></div>
-                    <p class="item-desc">Lomo a la plancha, papas fritas, cebolla caramelizada y dos huevos fritos.</p>
-                </div>
-            </div>
-
-            <div class="menu-item">
-                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400" alt="Pastel de Choclo" class="plato-img">
-                <div class="item-content">
-                    <div class="item-header"><span class="item-name">Pastel de Choclo</span><span class="item-price">$13.900</span></div>
-                    <p class="item-desc">Base de pino, pollo a la plancha, huevo, aceituna y pastelera de choclo.</p>
-                </div>
-            </div>
-
-             <div class="menu-item">
-                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=400" alt="Merluza Frita" class="plato-img">
-                <div class="item-content">
-                    <div class="item-header"><span class="item-name">Merluza Frita con Agregado</span><span class="item-price">$13.900</span></div>
-                    <p class="item-desc">Doble merluza con agregado a elección.</p>
-                </div>
-            </div>
-
-        </div>
-
-        <div id="bebidas-container" class="drinks-container">
-            
-            <h3 class="drink-category-title">Aperitivos y Cócteles</h3>
-            <div class="drink-list-item"><span class="drink-name">Pisco Sour</span><div class="drink-dots"></div><span class="drink-price">$3.500</span></div>
-            <div class="drink-list-item"><span class="drink-name">Vaina</span><div class="drink-dots"></div><span class="drink-price">$4.000</span></div>
-            <div class="drink-list-item"><span class="drink-name">Amaretto Sour / Mango / Chardonnay</span><div class="drink-dots"></div><span class="drink-price">$4.500</span></div>
-            <div class="drink-list-item"><span class="drink-name">Sour Sabores</span><div class="drink-dots"></div><span class="drink-price">$4.800</span></div>
-            <div class="drink-list-item"><span class="drink-name">Aperol</span><div class="drink-dots"></div><span class="drink-price">$5.800</span></div>
-            <div class="drink-list-item"><span class="drink-name">Ramazzotti</span><div class="drink-dots"></div><span class="drink-price">$5.800</span></div>
-
-            <h3 class="drink-category-title">Vinos Blancos y Tintos</h3>
-            <div class="drink-list-item"><span class="drink-name">Copa de Vino (Tinto o Blanco)</span><div class="drink-dots"></div><span class="drink-price">$2.800</span></div>
-            <div class="drink-list-item"><span class="drink-name">Botellín Carmen / 120</span><div class="drink-dots"></div><span class="drink-price">$3.000</span></div>
-            <div class="drink-list-item"><span class="drink-name">Gato 3/4</span><div class="drink-dots"></div><span class="drink-price">$7.000</span></div>
-            <div class="drink-list-item"><span class="drink-name">Undurraga / Carmen 3/4</span><div class="drink-dots"></div><span class="drink-price">$7.500</span></div>
-            <div class="drink-list-item"><span class="drink-name">Vino Obeja Negra</span><div class="drink-dots"></div><span class="drink-price">$9.800</span></div>
-            <div class="drink-list-item"><span class="drink-name">Casillero Red Blend</span><div class="drink-dots"></div><span class="drink-price">$14.900</span></div>
-            <div class="drink-list-item"><span class="drink-name">Toro de Piedra</span><div class="drink-dots"></div><span class="drink-price">$19.000</span></div>
-            <div class="drink-list-item"><span class="drink-name">Descorche de Vino</span><div class="drink-dots"></div><span class="drink-price">$5.000</span></div>
-
-            <h3 class="drink-category-title">Cervezas</h3>
-            <div class="drink-list-item"><span class="drink-name">Botellín Cristal / Stella Artois</span><div class="drink-dots"></div><span class="drink-price">$1.500</span></div>
-            <div class="drink-list-item"><span class="drink-name">Botellín Heineken / Kross / Kunstmann</span><div class="drink-dots"></div><span class="drink-price">$3.200</span></div>
-            <div class="drink-list-item"><span class="drink-name">Cerveza Litro (Cristal / Escudo)</span><div class="drink-dots"></div><span class="drink-price">$4.000</span></div>
-            <div class="drink-list-item"><span class="drink-name">Cerveza Litro (Heineken / Royal)</span><div class="drink-dots"></div><span class="drink-price">$4.800</span></div>
-            <div class="drink-list-item"><span class="drink-name">Base Michelada</span><div class="drink-dots"></div><span class="drink-price">$1.800</span></div>
-
-            <h3 class="drink-category-title">Sin Alcohol & Cafetería</h3>
-            <div class="drink-list-item"><span class="drink-name">Agua (Con o Sin Gas)</span><div class="drink-dots"></div><span class="drink-price">$2.200</span></div>
-            <div class="drink-list-item"><span class="drink-name">Jugo Natural / Limonada Tradicional</span><div class="drink-dots"></div><span class="drink-price">$3.500</span></div>
-            <div class="drink-list-item"><span class="drink-name">Limonada Menta Jengibre (Miel)</span><div class="drink-dots"></div><span class="drink-price">$4.800</span></div>
-            <div class="drink-list-item"><span class="drink-name">Taza de Té / Agua de Hierbas</span><div class="drink-dots"></div><span class="drink-price">$1.500</span></div>
-            <div class="drink-list-item"><span class="drink-name">Café Expresso Grano</span><div class="drink-dots"></div><span class="drink-price">$2.500</span></div>
-            <div class="drink-list-item"><span class="drink-name">Café Capuccino Grano</span><div class="drink-dots"></div><span class="drink-price">$3.500</span></div>
-
-        </div>
+        <div class="split-img" style="background-image: url('https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800');"></div>
     </section>
 
     <footer>
-        <div class="footer-content">
-            <div class="footer-col">
-                <h3>La Tetera de Greda</h3>
-                <p>Restobar de comida típica chilena, hecho con pasión y tradición en el corazón de Villa Alemana.</p>
+        <div class="footer-info">
+            <div>
+                <h3 style="color: white; margin-bottom: 15px;">La Tetera de Greda</h3>
+                <p>Santa Ana 98, Villa Alemana.</p>
+                <p>Reservas: +569 7148 2268</p>
             </div>
-            <div class="footer-col">
-                <h3>Enlaces Rápidos</h3>
-                <a href="#inicio">Inicio</a>
-                <a href="#nosotros">Nuestra Historia</a>
-                <a href="#menu-dia">Menú del Día</a>
-                <a href="#carta">La Carta</a>
+            <div>
+                <h3 style="color: white; margin-bottom: 15px;">Horario</h3>
+                <p>Lunes a Domingo</p>
+                <p>12:00 hrs - 18:00 hrs</p>
             </div>
-            <div class="footer-col">
-                <h3>Horarios & Contacto</h3>
-                <p><i class="fa-regular fa-clock" style="color:var(--greda-orange); margin-right:5px;"></i> <strong>Lunes a Domingo</strong></p>
-                <p>12:00 PM a 18:00 PM</p>
-                <p style="margin-top:15px;"><i class="fa-solid fa-location-dot" style="color:var(--greda-orange); margin-right:5px;"></i> Santa Ana 98, Villa Alemana</p>
-                <p><i class="fa-brands fa-whatsapp" style="color:var(--greda-orange); margin-right:5px;"></i> +569 7148 2268</p>
-                <p><i class="fa-solid fa-phone" style="color:var(--greda-orange); margin-right:5px;"></i> 32 322 0409</p>
+            <div>
+                <h3 style="color: white; margin-bottom: 15px;">Síguenos</h3>
+                <a href="https://www.instagram.com/lateteradegreda" style="color: var(--tierra-clara); text-decoration: none;"><i class="fa-brands fa-instagram"></i> @lateteradegreda</a>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>© 2026 Restobar La Tetera de Greda. Todos los derechos reservados.</p>
+            &copy; 2026 La Tetera de Greda - Villa Alemana
         </div>
     </footer>
 
-    <a href="https://wa.me/56971482268?text=Hola,%20vengo%20desde%20su%20página%20web." class="whatsapp-float" target="_blank">
-        <i class="fa-brands fa-whatsapp"></i>
-    </a>
-
-    <script>
-        function showCategory(category) {
-            // Actualizar botones
-            const buttons = document.querySelectorAll('.filter-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            // Mostrar/Ocultar contenedores
-            const comidaContainer = document.getElementById('comida-container');
-            const bebidasContainer = document.getElementById('bebidas-container');
-
-            if (category === 'comida') {
-                comidaContainer.style.display = 'grid';
-                bebidasContainer.style.display = 'none';
-            } else {
-                comidaContainer.style.display = 'none';
-                bebidasContainer.style.display = 'block';
-            }
-        }
-    </script>
+    <a href="https://wa.me/56971482268" class="whatsapp-btn"><i class="fa-brands fa-whatsapp"></i></a>
 </body>
 </html>
