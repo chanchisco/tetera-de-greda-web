@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Carta | La Tetera de Greda</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --greda-red: #7a281d;
+            --greda-brown: #401b0f;
+            --greda-orange: #e58729;
+            --bg-light: #faf3e0;
+            --text-dark: #2c1e16;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-light); color: var(--text-dark); padding: 20px; }
+        h1, h2 { font-family: 'Playfair Display', serif; color: var(--greda-brown); }
+        h1 { text-align: center; margin-bottom: 30px; font-size: 1.8rem; }
+        .card { background: white; border-radius: 12px; padding: 25px; max-width: 650px; margin: 0 auto 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); }
+
+        /* LOGIN */
+        #login-section input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
+        #login-section button { width: 100%; padding: 12px; background: var(--greda-brown); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; }
+        #login-error { color: var(--greda-red); margin-top: 8px; font-size: 0.9rem; }
+
+        /* PANEL */
+        #panel-section { display: none; max-width: 650px; margin: 0 auto; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        #btn-logout { background: #999; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+
+        label { display: block; font-weight: 600; margin: 12px 0 5px; font-size: 0.9rem; }
+        input[type=text], input[type=file], textarea, select {
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-family: inherit; font-size: 0.95rem;
+        }
+        textarea { resize: vertical; min-height: 60px; }
+        .btn-primary { background: var(--greda-orange); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 15px; }
+        .btn-secondary { background: transparent; color: var(--greda-brown); border: 1px solid var(--greda-brown); padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 15px; margin-left: 8px; }
+        .status-msg { margin-top: 10px; font-size: 0.9rem; font-weight: 600; }
+
+        .item-row { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .item-row-img { width: 55px; height: 55px; object-fit: cover; border-radius: 8px; background: #eee; flex-shrink: 0; }
+        .item-row-info { flex-grow: 1; font-size: 0.9rem; }
+        .item-row-info p { color: #777; font-size: 0.82rem; margin-top: 2px; }
+        .tag { background: var(--bg-light); color: var(--greda-brown); padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; margin-left: 5px; }
+        .item-row-actions { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+        .item-row-actions button { border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+        .btn-edit { background: #eee; }
+        .btn-delete { background: var(--greda-red); color: white; }
+
+        .import-box { border: 2px dashed var(--greda-orange); text-align: center; padding: 15px; border-radius: 10px; }
+        .import-box button { background: var(--greda-brown); color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .import-box p { font-size: 0.82rem; color: #777; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+    <h1>🫖 Panel de Administración — La Tetera de Greda</h1>
+
+    <!-- ==================== LOGIN ==================== -->
+    <div class="card" id="login-section">
+        <h2>Iniciar sesión</h2>
+        <form id="login-form">
+            <label for="login-email">Correo</label>
+            <input type="text" id="login-email" required>
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" required>
+            <button type="submit">Ingresar</button>
+            <p id="login-error"></p>
+        </form>
+    </div>
+
+    <!-- ==================== PANEL ==================== -->
+    <div id="panel-section">
+        <div class="top-bar">
+            <strong>Sesión iniciada</strong>
+            <button id="btn-logout">Cerrar sesión</button>
+        </div>
+
+        <!-- IMPORTAR CARTA ACTUAL (usar solo una vez) -->
+        <div class="card import-box">
+            <button id="btn-importar" type="button">Importar carta actual (una sola vez)</button>
+            <p>Usa este botón solo la primera vez para cargar el menú que ya tenías en la web. Si lo presionas más de una vez, los platos quedarán duplicados.</p>
+            <p id="importar-status" class="status-msg"></p>
+        </div>
+
+        <!-- FORMULARIO PLATOS -->
+        <div class="card">
+            <h2>Platos de la Carta</h2>
+            <form id="plato-form">
+                <input type="hidden" id="plato-id">
+                <label for="plato-nombre">Nombre del plato</label>
+                <input type="text" id="plato-nombre" required>
+
+                <label for="plato-precio">Precio (ej: $16.900 o Desde $4.800)</label>
+                <input type="text" id="plato-precio" required>
+
+                <label for="plato-desc">Descripción (opcional)</label>
+                <textarea id="plato-desc"></textarea>
+
+                <label for="plato-categoria">Categoría</label>
+                <select id="plato-categoria" required>
+                    <option value="carnes">Carnes y a lo Pobre</option>
+                    <option value="mar">Del Mar</option>
+                    <option value="fondos">Platos Tradicionales</option>
+                    <option value="entradas">Entradas y Ensaladas</option>
+                    <option value="guarniciones">Guarniciones</option>
+                    <option value="ninos">Menú Niños</option>
+                    <option value="postres">Postres</option>
+                </select>
+
+                <label for="plato-imagen">Foto del plato (opcional, tómala con el celular)</label>
+                <input type="file" id="plato-imagen" accept="image/*">
+
+                <button type="submit" class="btn-primary">Guardar Plato</button>
+                <button type="button" class="btn-secondary" id="plato-cancel">Cancelar edición</button>
+                <p id="plato-status" class="status-msg"></p>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Platos actuales</h2>
+            <div id="platos-lista">Cargando...</div>
+        </div>
+
+        <!-- FORMULARIO BEBIDAS -->
+        <div class="card">
+            <h2>Bebestibles</h2>
+            <form id="bebida-form">
+                <input type="hidden" id="bebida-id">
+                <label for="bebida-nombre">Nombre</label>
+                <input type="text" id="bebida-nombre" required>
+
+                <label for="bebida-precio">Precio</label>
+                <input type="text" id="bebida-precio" required>
+
+                <label for="bebida-subcategoria">Categoría</label>
+                <select id="bebida-subcategoria" required>
+                    <option value="Aperitivos y Cócteles">Aperitivos y Cócteles</option>
+                    <option value="Vinos Blancos y Tintos">Vinos Blancos y Tintos</option>
+                    <option value="Cervezas">Cervezas</option>
+                    <option value="Sin Alcohol & Cafetería">Sin Alcohol & Cafetería</option>
+                </select>
+
+                <button type="submit" class="btn-primary">Guardar Bebida</button>
+                <button type="button" class="btn-secondary" id="bebida-cancel">Cancelar edición</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Bebestibles actuales</h2>
+            <div id="bebidas-lista">Cargando...</div>
+        </div>
+    </div>
+
+    <!-- Librería de compresión de imágenes (gratis, vía CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/browser-image-compression/2.0.2/browser-image-compression.js"></script>
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
