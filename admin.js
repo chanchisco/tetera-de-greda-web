@@ -1,7 +1,7 @@
 import { db, auth } from './firebase-config.js';
 import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { CARTA_INICIAL } from './carta-datos.js';
+
 
 /* ============================
    AUTH Y UI BÁSICA
