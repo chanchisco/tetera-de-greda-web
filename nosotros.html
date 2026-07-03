@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nuestra Historia | La Tetera de Greda</title>
+    <link rel="icon" href="logo tetera.png">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -153,22 +154,22 @@
     <section class="story-section">
         <div class="story-block">
             <div class="story-text">
-                <h2>Nuestros Orígenes</h2>
-                <p>Fundado hace años en Villa Alemana, La Tetera de Greda nació del amor por las raíces chilenas. Cada plato que servimos en nuestras fuentes de greda cuenta una historia de tradición, esfuerzo y familia. Nuestra misión es que cada cliente se sienta como almorzando en su propio hogar, rodeado de sabores auténticos y una atención cálida.</p>
+                <h2 id="hist-tit1-disp">Nuestros Orígenes</h2>
+                <p id="hist-txt1-disp">Fundado hace años en Villa Alemana, La Tetera de Greda nació del amor por las raíces chilenas. Cada plato que servimos en nuestras fuentes de greda cuenta una historia de tradición, esfuerzo y familia. Nuestra misión es que cada cliente se sienta como almorzando en su propio hogar, rodeado de sabores auténticos y una atención cálida.</p>
             </div>
             <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=700" alt="Local" class="story-img" id="story-img-1">
         </div>
         <div class="story-block reverse">
             <div class="story-text">
-                <h2>Referente Gastronómico</h2>
-                <p>A lo largo del tiempo, nos hemos convertido en un referente gastronómico de la Quinta Región, manteniendo siempre la calidad de nuestras materias primas y el respeto por las recetas de antaño. Nuestros ingredientes son seleccionados con cuidado, y nuestras gredas traídas del sur le dan ese toque único a cada preparación.</p>
+                <h2 id="hist-tit2-disp">Referente Gastronómico</h2>
+                <p id="hist-txt2-disp">A lo largo del tiempo, nos hemos convertido en un referente gastronómico de la Quinta Región, manteniendo siempre la calidad de nuestras materias primas y el respeto por las recetas de antaño. Nuestros ingredientes son seleccionados con cuidado, y nuestras gredas traídas del sur le dan ese toque único a cada preparación.</p>
             </div>
             <img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=700" alt="Comida en greda" class="story-img" id="story-img-2">
         </div>
         <div class="story-block">
             <div class="story-text">
-                <h2>Familia y Comunidad</h2>
-                <p>Somos mucho más que un restaurante: somos el punto de encuentro de familias, amigos y vecinos de Villa Alemana y toda la Quinta Región. Cada visita es una celebración de lo nuestro, de lo chileno, de lo hecho con amor en casa. Gracias a nuestros clientes de siempre, seguimos creciendo con orgullo.</p>
+                <h2 id="hist-tit3-disp">Familia y Comunidad</h2>
+                <p id="hist-txt3-disp">Somos mucho más que un restaurante: somos el punto de encuentro de familias, amigos y vecinos de Villa Alemana y toda la Quinta Región. Cada visita es una celebración de lo nuestro, de lo chileno, de lo hecho con amor en casa. Gracias a nuestros clientes de siempre, seguimos creciendo con orgullo.</p>
             </div>
             <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=700" alt="Ambiente familiar" class="story-img" id="story-img-3">
         </div>
@@ -197,13 +198,8 @@
 
     <section class="gallery-section">
         <h2>Nuestro Espacio</h2>
-        <div class="scrolling-gallery">
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=500" alt="Ambiente"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=500" alt="Comida"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=500" alt="Detalles"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=500" alt="Bebidas"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500" alt="Platos"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=500" alt="Carnes"></div>
+        <div class="scrolling-gallery" id="galeria-display">
+            <!-- Cargado desde Firestore -->
         </div>
     </section>
 
@@ -250,19 +246,53 @@
 
     <script type="module">
         import { db } from './firebase-config.js';
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Cargar portada hero desde Firestore
-        async function cargarPortada() {
+        // Cargar datos dinámicos
+        async function cargarDatos() {
+            // Portada
             try {
                 const snap = await getDoc(doc(db, 'configuracion', 'portadas'));
                 if (snap.exists() && snap.data().nosotros) {
                     const hero = document.getElementById('hero-nosotros');
                     hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${snap.data().nosotros}')`;
                 }
-            } catch(e) { /* usa imagen por defecto */ }
+            } catch(e) {}
+
+            // Historia
+            try {
+                const hSnap = await getDoc(doc(db, 'configuracion', 'historia'));
+                if (hSnap.exists()) {
+                    const d = hSnap.data();
+                    for(let i=1; i<=3; i++) {
+                        if(d[`b${i}`]) {
+                            if(d[`b${i}`].tit) document.getElementById(`hist-tit${i}-disp`).textContent = d[`b${i}`].tit;
+                            if(d[`b${i}`].txt) document.getElementById(`hist-txt${i}-disp`).textContent = d[`b${i}`].txt;
+                            if(d[`b${i}`].img) document.getElementById(`story-img-${i}`).src = d[`b${i}`].img;
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            // Galeria
+            try {
+                const gSnap = await getDocs(collection(db, 'galeria'));
+                const cont = document.getElementById('galeria-display');
+                if(!gSnap.empty) {
+                    cont.innerHTML = '';
+                    gSnap.forEach(d => {
+                        cont.innerHTML += `<div class="gallery-item"><img src="${d.data().url}" alt="Nuestro Espacio"></div>`;
+                    });
+                } else {
+                    cont.innerHTML = `
+                        <div class="gallery-item"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=500" alt="Ambiente"></div>
+                        <div class="gallery-item"><img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=500" alt="Comida"></div>
+                        <div class="gallery-item"><img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=500" alt="Detalles"></div>
+                    `;
+                }
+            } catch(e) {}
         }
-        cargarPortada();
+        cargarDatos();
 
         // Modal Admin
         const adminOverlay = document.getElementById('admin-modal-overlay');

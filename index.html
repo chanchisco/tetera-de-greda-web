@@ -7,6 +7,7 @@
     <meta property="og:title" content="La Tetera de Greda | Restobar">
     <meta property="og:description" content="Comida Típica Chilena en Villa Alemana. Menú del día, carnes y más.">
     <meta property="og:type" content="website">
+    <link rel="icon" href="logo tetera.png">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -147,6 +148,7 @@
             .hero-nav a { padding: 14px 16px; font-size: 0.82rem; letter-spacing: 1px; }
             .split-text { padding: 50px 20px; }
             .menu-dia-layout { flex-direction: column; }
+            .menu-dia-img-slot img { max-height: 160px; } /* Imágenes más pequeñas en móvil */
         }
 
         /* ── MODAL ADMIN ── */
@@ -184,7 +186,7 @@
     </header>
 
     <!-- QUIÉNES SOMOS -->
-    <section class="split-section">
+    <section class="split-section" id="qs-section">
         <div class="split-text">
             <h2>Quiénes Somos</h2>
             <p id="qs-texto-display">Fundados en Villa Alemana con el amor por las raíces chilenas, somos un restaurante familiar donde cada plato servido en greda cuenta una historia de tradición y esfuerzo. Nos hemos convertido en referente gastronómico de la Quinta Región, preservando las recetas de antaño con ingredientes frescos y locales.</p>
@@ -197,7 +199,7 @@
     <section class="split-section">
         <div class="split-image" id="nc-imagen" style="background-image: url('https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=1000');"></div>
         <div class="split-text">
-            <h2>Nuestra Carta</h2>
+            <h2 id="nc-titulo-display">Nuestra Carta</h2>
             <p>Desde nuestra famosa Plateada a lo Pobre y exquisito Pastel de Choclo, hasta opciones del mar como Chupe de Locos, Paila Marina y Pastel de Jaiba. Acompaña tus platos con nuestra selecta carta de vinos y aperitivos tradicionales.</p>
             <a href="carta.html" class="btn-outline">Ver la Carta Completa</a>
         </div>
@@ -335,11 +337,18 @@
                 const seccionesSnap = await getDoc(doc(db, 'configuracion', 'imagenesSeccion'));
                 if (seccionesSnap.exists()) {
                     const d = seccionesSnap.data();
-                    if (d.quienesSomosImg) {
-                        document.getElementById('qs-imagen').style.backgroundImage = `url('${d.quienesSomosImg}')`;
+                    if (d.quienesSomosHabilitado === false) {
+                        document.getElementById('qs-section').style.display = 'none';
+                    } else {
+                        if (d.quienesSomosImg) {
+                            document.getElementById('qs-imagen').style.backgroundImage = `url('${d.quienesSomosImg}')`;
+                        }
+                        if (d.quienesSomosTexto) {
+                            document.getElementById('qs-texto-display').textContent = d.quienesSomosTexto;
+                        }
                     }
-                    if (d.quienesSomosTexto) {
-                        document.getElementById('qs-texto-display').textContent = d.quienesSomosTexto;
+                    if (d.nuestraCartaTitulo) {
+                        document.getElementById('nc-titulo-display').textContent = d.nuestraCartaTitulo;
                     }
                     if (d.nuestraCartaImg) {
                         document.getElementById('nc-imagen').style.backgroundImage = `url('${d.nuestraCartaImg}')`;
