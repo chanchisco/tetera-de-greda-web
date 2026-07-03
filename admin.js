@@ -72,42 +72,38 @@ const cropperOverlay = document.getElementById('cropper-overlay');
 const cropperZoom = document.getElementById('cropper-zoom');
 const cropperContainer = document.getElementById('cropper-container');
 
-async function openCropper(file, aspectRatio) {
+async function openCropper(b64Data, aspectRatio) {
     return new Promise((resolve) => {
         cropperResolve = resolve;
         currentAspectRatio = aspectRatio;
         
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            cropperImg.onload = () => {
-                cropperModal.classList.remove('hidden');
-                
-                requestAnimationFrame(() => {
-                    // Ajustar overlay
-                    const cw = cropperContainer.clientWidth;
-                    const ch = cropperContainer.clientHeight;
-                    let ow, oh;
-                    if (cw / ch > aspectRatio) {
-                        oh = ch * 0.9; ow = oh * aspectRatio;
-                    } else {
-                        ow = cw * 0.9; oh = ow / aspectRatio;
-                    }
-                    cropperOverlay.style.width = `${ow}px`;
-                    cropperOverlay.style.height = `${oh}px`;
-                    cropperOverlay.style.top = `${(ch - oh) / 2}px`;
-                    cropperOverlay.style.left = `${(cw - ow) / 2}px`;
+        cropperImg.onload = () => {
+            cropperModal.classList.remove('hidden');
+            
+            requestAnimationFrame(() => {
+                // Ajustar overlay
+                const cw = cropperContainer.clientWidth;
+                const ch = cropperContainer.clientHeight;
+                let ow, oh;
+                if (cw / ch > aspectRatio) {
+                    oh = ch * 0.9; ow = oh * aspectRatio;
+                } else {
+                    ow = cw * 0.9; oh = ow / aspectRatio;
+                }
+                cropperOverlay.style.width = `${ow}px`;
+                cropperOverlay.style.height = `${oh}px`;
+                cropperOverlay.style.top = `${(ch - oh) / 2}px`;
+                cropperOverlay.style.left = `${(cw - ow) / 2}px`;
 
-                    // Inicializar imagen
-                    const scale = Math.max(ow / cropperImg.naturalWidth, oh / cropperImg.naturalHeight);
-                    cropperZoom.min = scale;
-                    cropperZoom.max = scale * 4;
-                    cropperZoom.value = scale;
-                    updateCropperTransform(0, 0, scale);
-                });
-            };
-            cropperImg.src = e.target.result;
+                // Inicializar imagen
+                const scale = Math.max(ow / cropperImg.naturalWidth, oh / cropperImg.naturalHeight);
+                cropperZoom.min = scale;
+                cropperZoom.max = scale * 4;
+                cropperZoom.value = scale;
+                updateCropperTransform(0, 0, scale);
+            });
         };
-        reader.readAsDataURL(file);
+        cropperImg.src = b64Data;
     });
 }
 
@@ -189,14 +185,7 @@ document.getElementById('btn-crop-apply').addEventListener('click', async () => 
     const base64 = canvas.toDataURL('image/jpeg', 0.85); // comprimido
     cropperModal.classList.add('hidden');
     
-    // Si la imagen es muy pesada, la pasamos por el compresor nativo
-    let finalBase64 = base64;
-    try {
-        const fileObj = dataURLtoFile(base64, 'cropped.jpg');
-        finalBase64 = await compressImage(fileObj);
-    } catch(e) {}
-    
-    if(cropperResolve) cropperResolve(finalBase64);
+    if(cropperResolve) cropperResolve(base64);
 });
 
 // Helpers
@@ -239,22 +228,32 @@ function renderPreview(imgId, src, noImgId, delBtnId) {
 // Funciones globales para que el HTML pueda llamarlas onchange
 window.abrirRecortadorPlato = async (input) => {
     if(input.files.length === 0) return;
-    const b64 = await openCropper(input.files[0], 4/3); // Aspect ratio platos
+    showStatus('plato-status', 'Procesando imagen...');
+    const b64_temp = await compressImage(input.files[0]);
+    const b64 = await openCropper(b64_temp, 4/3); // Aspect ratio platos
     input.value = ''; // Reset input
     if(b64) {
         document.getElementById('plato-preview-box').style.display = 'flex';
         document.getElementById('plato-img-current').src = b64;
         estadoPlatoImg.base64 = b64; // Guarda el nuevo base64
+        showStatus('plato-status', 'Imagen lista para guardar');
+    } else {
+        showStatus('plato-status', '');
     }
 };
 
 window.recortarYGuardar = async (prefix, input, ratio, saveFunc) => {
     if(input.files.length === 0) return;
-    const b64 = await openCropper(input.files[0], ratio);
+    const tipo = prefix.split('-')[1] || prefix;
+    showStatus(`${prefix}-status` || `${tipo}-status` || 'qs-status', 'Procesando...');
+    const b64_temp = await compressImage(input.files[0]);
+    const b64 = await openCropper(b64_temp, ratio);
     input.value = '';
     if(b64) {
         // Ejecutar funcion de guardado y pasarle el base64
         saveFunc(prefix, b64);
+    } else {
+        showStatus(`${prefix}-status` || `${tipo}-status` || 'qs-status', '');
     }
 };
 
@@ -637,13 +636,17 @@ window.subirMultiGaleria = async (input) => {
     if(input.files.length === 0) return;
     
     if(input.files.length === 1) {
-        const b64 = await openCropper(input.files[0], 4/3); // Aspect ratio galeria
+        showStatus('galeria-status', 'Procesando imagen...');
+        const b64_temp = await compressImage(input.files[0]);
+        const b64 = await openCropper(b64_temp, 4/3); // Aspect ratio galeria
         input.value = '';
         if(b64) {
             showStatus('galeria-status', 'Subiendo imagen...');
             await addDoc(collection(db, 'galeria'), { url: b64, ts: Date.now() });
             showStatus('galeria-status', 'Imagen agregada');
             cargarGaleria();
+        } else {
+            showStatus('galeria-status', '');
         }
     } else {
         showStatus('galeria-status', 'Subiendo imágenes...');
