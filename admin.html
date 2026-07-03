@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administrar Carta | La Tetera de Greda</title>
+    <title>Panel de Administración | La Tetera de Greda</title>
     <meta name="robots" content="noindex, nofollow">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --greda-red: #7a281d;
@@ -13,149 +14,416 @@
             --greda-orange: #e58729;
             --bg-light: #faf3e0;
             --text-dark: #2c1e16;
+            --sidebar-w: 200px;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg-light); color: var(--text-dark); padding: 20px; }
-        h1, h2 { font-family: 'Playfair Display', serif; color: var(--greda-brown); }
-        h1 { text-align: center; margin-bottom: 30px; font-size: 1.8rem; }
-        .card { background: white; border-radius: 12px; padding: 25px; max-width: 650px; margin: 0 auto 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-light); color: var(--text-dark); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* LOGIN */
-        #login-section input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
-        #login-section button { width: 100%; padding: 12px; background: var(--greda-brown); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; }
-        #login-error { color: var(--greda-red); margin-top: 8px; font-size: 0.9rem; }
-
-        /* PANEL */
-        #panel-section { display: none; max-width: 650px; margin: 0 auto; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        #btn-logout { background: #999; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
-
-        label { display: block; font-weight: 600; margin: 12px 0 5px; font-size: 0.9rem; }
-        input[type=text], input[type=file], textarea, select {
-            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-family: inherit; font-size: 0.95rem;
+        /* ── TOP BAR ── */
+        .topbar {
+            background: var(--greda-brown); color: white;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 18px; flex-shrink: 0;
         }
-        textarea { resize: vertical; min-height: 60px; }
-        .btn-primary { background: var(--greda-orange); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 15px; }
-        .btn-secondary { background: transparent; color: var(--greda-brown); border: 1px solid var(--greda-brown); padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 15px; margin-left: 8px; }
-        .status-msg { margin-top: 10px; font-size: 0.9rem; font-weight: 600; }
+        .topbar-title { font-family: 'Playfair Display', serif; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+        .topbar-title span { font-size: 1.2rem; }
+        #btn-logout { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-family: 'Poppins', sans-serif; transition: 0.2s; }
+        #btn-logout:hover { background: rgba(255,255,255,0.3); }
 
-        .item-row { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .item-row-img { width: 55px; height: 55px; object-fit: cover; border-radius: 8px; background: #eee; flex-shrink: 0; }
-        .item-row-info { flex-grow: 1; font-size: 0.9rem; }
-        .item-row-info p { color: #777; font-size: 0.82rem; margin-top: 2px; }
-        .tag { background: var(--bg-light); color: var(--greda-brown); padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; margin-left: 5px; }
-        .item-row-actions { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
-        .item-row-actions button { border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
-        .btn-edit { background: #eee; }
-        .btn-delete { background: var(--greda-red); color: white; }
+        /* ── LAYOUT PRINCIPAL ── */
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
 
-        .import-box { border: 2px dashed var(--greda-orange); text-align: center; padding: 15px; border-radius: 10px; }
-        .import-box button { background: var(--greda-brown); color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .import-box p { font-size: 0.82rem; color: #777; margin-top: 8px; }
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w); background: white; border-right: 1px solid #e8e0d5;
+            display: flex; flex-direction: column; gap: 4px; padding: 16px 10px; overflow-y: auto; flex-shrink: 0;
+        }
+        .sidebar-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa; font-weight: 600; padding: 0 8px; margin: 8px 0 4px; }
+        .nav-btn {
+            display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 8px;
+            border: none; background: transparent; cursor: pointer; font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem; color: var(--text-dark); text-align: left; transition: 0.2s; width: 100%;
+        }
+        .nav-btn i { width: 16px; text-align: center; color: var(--greda-orange); }
+        .nav-btn:hover { background: #fdf3e7; }
+        .nav-btn.active { background: #fdf3e7; color: var(--greda-brown); font-weight: 600; border-left: 3px solid var(--greda-orange); }
+
+        /* ── CONTENT AREA ── */
+        .content { flex: 1; overflow-y: auto; padding: 22px; }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* ── CARDS ── */
+        .card { background: white; border-radius: 12px; padding: 22px; margin-bottom: 18px; box-shadow: 0 3px 12px rgba(0,0,0,0.07); }
+        .card h2 { font-family: 'Playfair Display', serif; color: var(--greda-brown); font-size: 1.3rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .card h2 i { color: var(--greda-orange); font-size: 1rem; }
+
+        /* ── FORMS ── */
+        label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 0.82rem; color: #555; }
+        input[type=text], input[type=password], input[type=email], textarea, select {
+            width: 100%; padding: 9px 12px; border: 1.5px solid #e0d8d0; border-radius: 8px;
+            font-family: inherit; font-size: 0.9rem; transition: border 0.2s; background: #fdfaf6;
+        }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--greda-orange); background: white; }
+        textarea { resize: vertical; min-height: 70px; }
+        .btn-primary { background: var(--greda-orange); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.9rem; transition: 0.2s; }
+        .btn-primary:hover { background: #c9751e; }
+        .btn-secondary { background: transparent; color: var(--greda-brown); border: 1.5px solid var(--greda-brown); padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.9rem; margin-left: 8px; transition: 0.2s; }
+        .btn-secondary:hover { background: var(--greda-brown); color: white; }
+        .btn-danger { background: var(--greda-red); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-family: inherit; }
+        .btn-edit-sm { background: #eee; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-family: inherit; }
+        .status-msg { margin-top: 8px; font-size: 0.85rem; font-weight: 600; min-height: 20px; }
+        .status-ok { color: #2d7a2d; }
+        .status-err { color: var(--greda-red); }
+
+        /* ── LOGIN ── */
+        #login-page { display: flex; align-items: center; justify-content: center; height: 100%; }
+        .login-box { background: white; border-radius: 16px; padding: 40px 35px; max-width: 380px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.1); text-align: center; }
+        .login-box .logo-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .login-box h1 { font-family: 'Playfair Display', serif; color: var(--greda-brown); font-size: 1.4rem; margin-bottom: 6px; }
+        .login-box p { color: #888; font-size: 0.85rem; margin-bottom: 24px; }
+        .login-box input { margin-bottom: 12px; text-align: left; }
+        .login-box button { width: 100%; background: var(--greda-brown); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; font-family: 'Poppins', sans-serif; margin-top: 4px; transition: 0.2s; }
+        .login-box button:hover { background: var(--greda-red); }
+        #login-error { color: var(--greda-red); font-size: 0.85rem; margin-top: 10px; }
+
+        /* ── ITEMS LIST ── */
+        .item-row { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0e8e0; }
+        .item-row:last-child { border-bottom: none; }
+        .item-row-img { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; background: #eee; flex-shrink: 0; }
+        .item-row-info { flex-grow: 1; font-size: 0.88rem; }
+        .item-row-info strong { color: var(--greda-brown); }
+        .item-row-info p { color: #888; font-size: 0.8rem; margin-top: 2px; }
+        .tag { background: #f0e8e0; color: var(--greda-brown); padding: 2px 7px; border-radius: 12px; font-size: 0.73rem; margin-left: 5px; }
+        .item-row-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+
+        /* ── IMAGE EDITOR ── */
+        .img-editor-wrap { position: relative; width: 100%; height: 200px; border-radius: 10px; overflow: hidden; cursor: crosshair; background: #f0e8e0; border: 2px dashed #c8b8a8; margin: 10px 0; }
+        .img-editor-wrap img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; user-select: none; transition: object-position 0.1s; }
+        .img-editor-hint { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.55); color: white; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; pointer-events: none; white-space: nowrap; }
+        .img-preview-label { font-size: 0.78rem; color: #888; margin-bottom: 4px; }
+        .img-preview-current { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; background: #eee; display: block; margin: 6px 0; }
+        .no-img { width: 100%; height: 140px; background: #f0e8e0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 0.85rem; }
+
+        /* ── PORTADAS GRID ── */
+        .portadas-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+        @media (max-width: 500px) { .portadas-grid { grid-template-columns: 1fr; } }
+        .portada-card { border: 1.5px solid #e0d8d0; border-radius: 10px; overflow: hidden; }
+        .portada-card img { width: 100%; height: 110px; object-fit: cover; background: #eee; display: block; }
+        .portada-no-img { width: 100%; height: 110px; background: #f0e8e0; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 0.8rem; }
+        .portada-info { padding: 10px; }
+        .portada-info p { font-size: 0.8rem; font-weight: 600; color: var(--greda-brown); margin-bottom: 6px; }
+        .portada-info input[type=file] { font-size: 0.75rem; padding: 4px; }
+
+        /* ── MENU DIA ── */
+        .menu-dia-imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 480px) { .menu-dia-imgs { grid-template-columns: 1fr; } }
+        .menu-dia-slot { border: 1.5px solid #e0d8d0; border-radius: 10px; overflow: hidden; }
+        .menu-dia-slot img { width: 100%; height: 130px; object-fit: cover; background: #eee; display: block; }
+        .menu-dia-slot-empty { width: 100%; height: 130px; background: #f0e8e0; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 0.8rem; }
+        .menu-dia-slot-info { padding: 10px; }
+        .menu-dia-slot-info p { font-size: 0.8rem; font-weight: 600; color: var(--greda-brown); margin-bottom: 6px; }
+
+        /* ── IMAGENES SECCIONES ── */
+        .seccion-card { border: 1.5px solid #e0d8d0; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+        .seccion-card h3 { font-family: 'Playfair Display', serif; color: var(--greda-red); font-size: 1rem; margin-bottom: 12px; }
+        .seccion-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; display: block; margin-bottom: 10px; }
+        .seccion-no-img { width: 100%; height: 150px; background: #f0e8e0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 0.85rem; margin-bottom: 10px; }
+
+        /* ── IMPORT BOX ── */
+        .import-box { border: 2px dashed var(--greda-orange); text-align: center; padding: 14px; border-radius: 10px; background: #fffaf3; }
+        .import-box button { background: var(--greda-brown); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: inherit; font-size: 0.85rem; }
+        .import-box p { font-size: 0.78rem; color: #888; margin-top: 6px; }
+
+        /* ── SCROLLBAR ── */
+        .content::-webkit-scrollbar { width: 5px; }
+        .content::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+
+        /* ── HIDDEN ── */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <h1>🫖 Panel de Administración — La Tetera de Greda</h1>
-
-    <!-- ==================== LOGIN ==================== -->
-    <div class="card" id="login-section">
-        <h2>Iniciar sesión</h2>
+<!-- ==================== LOGIN PAGE ==================== -->
+<div id="login-page">
+    <div class="login-box">
+        <div class="logo-icon">🫖</div>
+        <h1>La Tetera de Greda</h1>
+        <p>Ingresa para administrar el sitio web</p>
         <form id="login-form">
-            <label for="login-email">Correo</label>
-            <input type="text" id="login-email" required>
+            <label for="login-email">Correo electrónico</label>
+            <input type="email" id="login-email" placeholder="admin@ejemplo.com" required>
             <label for="login-password">Contraseña</label>
-            <input type="password" id="login-password" required>
-            <button type="submit">Ingresar</button>
+            <input type="password" id="login-password" placeholder="••••••••" required>
+            <button type="submit"><i class="fa-solid fa-right-to-bracket"></i> Ingresar</button>
             <p id="login-error"></p>
         </form>
     </div>
+</div>
 
-    <!-- ==================== PANEL ==================== -->
-    <div id="panel-section">
-        <div class="top-bar">
-            <strong>Sesión iniciada</strong>
-            <button id="btn-logout">Cerrar sesión</button>
+<!-- ==================== PANEL ==================== -->
+<div id="panel-root" class="hidden" style="display:flex; flex-direction:column; height:100vh;">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <div class="topbar-title">
+            <span>🫖</span> Panel de Administración — La Tetera de Greda
         </div>
-
-        <!-- IMPORTAR CARTA ACTUAL (no tocar porfabor ) -->
-        <div class="card import-box">
-            <button id="btn-importar" type="button">Importar carta actual (una sola vez)</button>
-            <p>es solo para pruebas no tocar esta parte</p>
-            <p id="importar-status" class="status-msg"></p>
-        </div>
-
-        <!-- FORMULARIO PLATOS -->
-        <div class="card">
-            <h2>Platos de la Carta</h2>
-            <form id="plato-form">
-                <input type="hidden" id="plato-id">
-                <label for="plato-nombre">Nombre del plato</label>
-                <input type="text" id="plato-nombre" required>
-
-                <label for="plato-precio">Precio (ej: $16.900 o Desde $4.800)</label>
-                <input type="text" id="plato-precio" required>
-
-                <label for="plato-desc">Descripción (opcional)</label>
-                <textarea id="plato-desc"></textarea>
-
-                <label for="plato-categoria">Categoría</label>
-                <select id="plato-categoria" required>
-                    <option value="carnes">Carnes y a lo Pobre</option>
-                    <option value="mar">Del Mar</option>
-                    <option value="fondos">Platos Tradicionales</option>
-                    <option value="entradas">Entradas y Ensaladas</option>
-                    <option value="guarniciones">Guarniciones</option>
-                    <option value="ninos">Menú Niños</option>
-                    <option value="postres">Postres</option>
-                </select>
-
-                <label for="plato-imagen">Foto del plato (opcional, tómala con el celular)</label>
-                <input type="file" id="plato-imagen" accept="image/*">
-
-                <button type="submit" class="btn-primary">Guardar Plato</button>
-                <button type="button" class="btn-secondary" id="plato-cancel">Cancelar edición</button>
-                <p id="plato-status" class="status-msg"></p>
-            </form>
-        </div>
-
-        <div class="card">
-            <h2>Platos actuales</h2>
-            <div id="platos-lista">Cargando...</div>
-        </div>
-
-        <!-- FORMULARIO BEBIDAS -->
-        <div class="card">
-            <h2>Bebestibles</h2>
-            <form id="bebida-form">
-                <input type="hidden" id="bebida-id">
-                <label for="bebida-nombre">Nombre</label>
-                <input type="text" id="bebida-nombre" required>
-
-                <label for="bebida-precio">Precio</label>
-                <input type="text" id="bebida-precio" required>
-
-                <label for="bebida-subcategoria">Categoría</label>
-                <select id="bebida-subcategoria" required>
-                    <option value="Aperitivos y Cócteles">Aperitivos y Cócteles</option>
-                    <option value="Vinos Blancos y Tintos">Vinos Blancos y Tintos</option>
-                    <option value="Cervezas">Cervezas</option>
-                    <option value="Sin Alcohol & Cafetería">Sin Alcohol & Cafetería</option>
-                </select>
-
-                <button type="submit" class="btn-primary">Guardar Bebida</button>
-                <button type="button" class="btn-secondary" id="bebida-cancel">Cancelar edición</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h2>Bebestibles actuales</h2>
-            <div id="bebidas-lista">Cargando...</div>
-        </div>
+        <button id="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
     </div>
 
-    <!-- Librería de compresión de imágenes (gratis, vía CDN) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/browser-image-compression/2.0.2/browser-image-compression.js"></script>
-    <script type="module" src="admin.js"></script>
+    <!-- MAIN LAYOUT -->
+    <div class="main-layout">
+
+        <!-- SIDEBAR -->
+        <nav class="sidebar">
+            <div class="sidebar-label">Menú</div>
+            <button class="nav-btn active" data-page="platos"><i class="fa-solid fa-utensils"></i> Platos</button>
+            <button class="nav-btn" data-page="bebidas"><i class="fa-solid fa-wine-glass"></i> Bebidas</button>
+
+            <div class="sidebar-label" style="margin-top:12px;">Contenido</div>
+            <button class="nav-btn" data-page="portadas"><i class="fa-solid fa-image"></i> Portadas</button>
+            <button class="nav-btn" data-page="menudia"><i class="fa-solid fa-calendar-day"></i> Menú del Día</button>
+            <button class="nav-btn" data-page="imagenes"><i class="fa-solid fa-photo-film"></i> Imágenes</button>
+
+            <div class="sidebar-label" style="margin-top:12px;">Sistema</div>
+            <button class="nav-btn" data-page="importar"><i class="fa-solid fa-file-import"></i> Importar</button>
+        </nav>
+
+        <!-- CONTENT -->
+        <div class="content">
+
+            <!-- ===== PAGE: PLATOS ===== -->
+            <div class="page active" id="page-platos">
+                <div class="card">
+                    <h2><i class="fa-solid fa-utensils"></i> Platos de la Carta</h2>
+                    <form id="plato-form">
+                        <input type="hidden" id="plato-id">
+                        <label for="plato-nombre">Nombre del plato</label>
+                        <input type="text" id="plato-nombre" required placeholder="Ej: Plateada a lo Pobre">
+
+                        <label for="plato-precio">Precio</label>
+                        <input type="text" id="plato-precio" required placeholder="Ej: $16.900">
+
+                        <label for="plato-desc">Descripción (opcional)</label>
+                        <textarea id="plato-desc" placeholder="Breve descripción del plato..."></textarea>
+
+                        <label for="plato-categoria">Categoría</label>
+                        <select id="plato-categoria" required>
+                            <option value="carnes">Carnes y a lo Pobre</option>
+                            <option value="mar">Del Mar</option>
+                            <option value="fondos">Platos Tradicionales</option>
+                            <option value="entradas">Entradas y Ensaladas</option>
+                            <option value="guarniciones">Guarniciones</option>
+                            <option value="ninos">Menú Niños</option>
+                            <option value="postres">Postres</option>
+                        </select>
+
+                        <!-- IMAGEN CON EDITOR DE POSICIÓN -->
+                        <label>Foto del plato</label>
+                        <p class="img-preview-label" id="plato-img-current-label" style="display:none;">Imagen actual:</p>
+                        <img id="plato-img-current" class="img-preview-current hidden" alt="Imagen actual">
+                        <div class="no-img hidden" id="plato-no-img">Sin imagen</div>
+
+                        <input type="file" id="plato-imagen" accept="image/*" style="margin-top:8px;">
+
+                        <div class="img-editor-wrap hidden" id="img-editor-wrap">
+                            <img id="img-editor-preview" alt="Preview">
+                            <div class="img-editor-hint"><i class="fa-solid fa-arrows-up-down-left-right"></i> Arrastra para ajustar el encuadre</div>
+                        </div>
+                        <input type="hidden" id="plato-img-pos-x" value="50">
+                        <input type="hidden" id="plato-img-pos-y" value="50">
+
+                        <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Plato</button>
+                            <button type="button" class="btn-secondary" id="plato-cancel">Cancelar</button>
+                        </div>
+                        <p id="plato-status" class="status-msg"></p>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fa-solid fa-list"></i> Platos actuales</h2>
+                    <div id="platos-lista">Cargando...</div>
+                </div>
+            </div>
+
+            <!-- ===== PAGE: BEBIDAS ===== -->
+            <div class="page" id="page-bebidas">
+                <div class="card">
+                    <h2><i class="fa-solid fa-wine-glass"></i> Bebestibles</h2>
+                    <form id="bebida-form">
+                        <input type="hidden" id="bebida-id">
+                        <label for="bebida-nombre">Nombre</label>
+                        <input type="text" id="bebida-nombre" required placeholder="Ej: Pisco Sour">
+
+                        <label for="bebida-precio">Precio</label>
+                        <input type="text" id="bebida-precio" required placeholder="Ej: $4.200">
+
+                        <label for="bebida-subcategoria">Categoría</label>
+                        <select id="bebida-subcategoria" required>
+                            <option value="Aperitivos y Cócteles">Aperitivos y Cócteles</option>
+                            <option value="Vinos Blancos y Tintos">Vinos Blancos y Tintos</option>
+                            <option value="Cervezas">Cervezas</option>
+                            <option value="Sin Alcohol & Cafetería">Sin Alcohol & Cafetería</option>
+                        </select>
+
+                        <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Bebida</button>
+                            <button type="button" class="btn-secondary" id="bebida-cancel">Cancelar</button>
+                        </div>
+                        <p id="bebida-status" class="status-msg"></p>
+                    </form>
+                </div>
+                <div class="card">
+                    <h2><i class="fa-solid fa-list"></i> Bebestibles actuales</h2>
+                    <div id="bebidas-lista">Cargando...</div>
+                </div>
+            </div>
+
+            <!-- ===== PAGE: PORTADAS ===== -->
+            <div class="page" id="page-portadas">
+                <div class="card">
+                    <h2><i class="fa-solid fa-image"></i> Portadas de Páginas</h2>
+                    <p style="font-size:0.85rem; color:#777; margin-bottom:18px;">Cambia la imagen de fondo del encabezado de cada página. La imagen se mostrará con un overlay oscuro automático.</p>
+                    <div class="portadas-grid">
+                        <!-- INICIO -->
+                        <div class="portada-card">
+                            <div id="portada-inicio-preview" class="portada-no-img">Cargando...</div>
+                            <div class="portada-info">
+                                <p><i class="fa-solid fa-house"></i> Inicio</p>
+                                <input type="file" id="portada-inicio-file" accept="image/*">
+                                <button class="btn-primary" style="width:100%; margin-top:8px; font-size:0.78rem; padding:7px;" onclick="guardarPortada('inicio', 'portada-inicio-file', 'portada-inicio-preview')">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar
+                                </button>
+                                <p id="portada-inicio-status" class="status-msg"></p>
+                            </div>
+                        </div>
+                        <!-- NOSOTROS -->
+                        <div class="portada-card">
+                            <div id="portada-nosotros-preview" class="portada-no-img">Cargando...</div>
+                            <div class="portada-info">
+                                <p><i class="fa-solid fa-users"></i> Nosotros</p>
+                                <input type="file" id="portada-nosotros-file" accept="image/*">
+                                <button class="btn-primary" style="width:100%; margin-top:8px; font-size:0.78rem; padding:7px;" onclick="guardarPortada('nosotros', 'portada-nosotros-file', 'portada-nosotros-preview')">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar
+                                </button>
+                                <p id="portada-nosotros-status" class="status-msg"></p>
+                            </div>
+                        </div>
+                        <!-- CARTA -->
+                        <div class="portada-card">
+                            <div id="portada-carta-preview" class="portada-no-img">Cargando...</div>
+                            <div class="portada-info">
+                                <p><i class="fa-solid fa-book-open"></i> La Carta</p>
+                                <input type="file" id="portada-carta-file" accept="image/*">
+                                <button class="btn-primary" style="width:100%; margin-top:8px; font-size:0.78rem; padding:7px;" onclick="guardarPortada('carta', 'portada-carta-file', 'portada-carta-preview')">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar
+                                </button>
+                                <p id="portada-carta-status" class="status-msg"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PAGE: MENÚ DEL DÍA ===== -->
+            <div class="page" id="page-menudia">
+                <div class="card">
+                    <h2><i class="fa-solid fa-calendar-day"></i> Imágenes del Menú del Día</h2>
+                    <p style="font-size:0.85rem; color:#777; margin-bottom:18px;">Sube hasta 2 imágenes del menú diario. Aparecerán en la sección "Menú del Día" de la página principal, una debajo de la otra.</p>
+                    <div class="menu-dia-imgs">
+                        <!-- IMAGEN 1 -->
+                        <div class="menu-dia-slot">
+                            <div id="menudia-img1-preview" class="menu-dia-slot-empty">Sin imagen</div>
+                            <div class="menu-dia-slot-info">
+                                <p><i class="fa-solid fa-1"></i> Imagen 1</p>
+                                <input type="file" id="menudia-img1-file" accept="image/*" style="font-size:0.75rem; padding:4px;">
+                                <button class="btn-primary" style="width:100%; margin-top:8px; font-size:0.78rem; padding:7px;" onclick="guardarMenuDiaImg(1)">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar
+                                </button>
+                                <button class="btn-danger" style="width:100%; margin-top:4px; font-size:0.78rem; padding:7px;" onclick="borrarMenuDiaImg(1)">
+                                    <i class="fa-solid fa-trash"></i> Quitar imagen
+                                </button>
+                                <p id="menudia-img1-status" class="status-msg"></p>
+                            </div>
+                        </div>
+                        <!-- IMAGEN 2 -->
+                        <div class="menu-dia-slot">
+                            <div id="menudia-img2-preview" class="menu-dia-slot-empty">Sin imagen</div>
+                            <div class="menu-dia-slot-info">
+                                <p><i class="fa-solid fa-2"></i> Imagen 2</p>
+                                <input type="file" id="menudia-img2-file" accept="image/*" style="font-size:0.75rem; padding:4px;">
+                                <button class="btn-primary" style="width:100%; margin-top:8px; font-size:0.78rem; padding:7px;" onclick="guardarMenuDiaImg(2)">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar
+                                </button>
+                                <button class="btn-danger" style="width:100%; margin-top:4px; font-size:0.78rem; padding:7px;" onclick="borrarMenuDiaImg(2)">
+                                    <i class="fa-solid fa-trash"></i> Quitar imagen
+                                </button>
+                                <p id="menudia-img2-status" class="status-msg"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PAGE: IMÁGENES DE SECCIONES ===== -->
+            <div class="page" id="page-imagenes">
+                <div class="card">
+                    <h2><i class="fa-solid fa-photo-film"></i> Imágenes de Secciones</h2>
+                    <p style="font-size:0.85rem; color:#777; margin-bottom:18px;">Edita las imágenes y textos de las secciones de la página principal.</p>
+
+                    <!-- QUIÉNES SOMOS -->
+                    <div class="seccion-card">
+                        <h3><i class="fa-solid fa-users" style="color:var(--greda-orange)"></i> Quiénes Somos</h3>
+                        <div id="qs-img-preview" class="seccion-no-img">Cargando...</div>
+                        <label>Imagen de la sección</label>
+                        <input type="file" id="qs-img-file" accept="image/*">
+                        <label for="qs-texto" style="margin-top:12px;">Texto descriptivo</label>
+                        <textarea id="qs-texto" rows="4" placeholder="Texto de la sección Quiénes Somos..."></textarea>
+                        <div style="margin-top:10px;">
+                            <button class="btn-primary" onclick="guardarSeccionImagen('quienesSomos', 'qs-img-file', 'qs-img-preview', 'qs-texto', 'qs-status')">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+                            </button>
+                        </div>
+                        <p id="qs-status" class="status-msg"></p>
+                    </div>
+
+                    <!-- NUESTRA CARTA -->
+                    <div class="seccion-card">
+                        <h3><i class="fa-solid fa-book-open" style="color:var(--greda-orange)"></i> Nuestra Carta (imagen decorativa)</h3>
+                        <p style="font-size:0.82rem; color:#888; margin-bottom:8px;">Esta imagen aparece al lado del texto "Nuestra Carta" en la página principal. Si no se sube ninguna, se mostrará una imagen aleatoria de los platos.</p>
+                        <div id="nc-img-preview" class="seccion-no-img">Cargando...</div>
+                        <label>Imagen de la sección</label>
+                        <input type="file" id="nc-img-file" accept="image/*">
+                        <div style="margin-top:10px;">
+                            <button class="btn-primary" onclick="guardarSeccionImagen('nuestraCarta', 'nc-img-file', 'nc-img-preview', null, 'nc-status')">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar imagen
+                            </button>
+                        </div>
+                        <p id="nc-status" class="status-msg"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PAGE: IMPORTAR ===== -->
+            <div class="page" id="page-importar">
+                <div class="card">
+                    <h2><i class="fa-solid fa-file-import"></i> Importar Carta</h2>
+                    <div class="import-box">
+                        <button id="btn-importar" type="button"><i class="fa-solid fa-upload"></i> Importar carta actual (una sola vez)</button>
+                        <p>⚠️ Solo debe hacerse una vez. No tocar si ya se importó.</p>
+                        <p id="importar-status" class="status-msg"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- fin .content -->
+    </div><!-- fin .main-layout -->
+</div><!-- fin #panel-root -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/browser-image-compression/2.0.2/browser-image-compression.js"></script>
+<script type="module" src="admin.js"></script>
 </body>
 </html>
