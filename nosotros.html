@@ -151,7 +151,7 @@
         </nav>
     </header>
 
-    <section class="story-section">
+    <section class="story-section" id="historia-section">
         <div class="story-block">
             <div class="story-text">
                 <h2 id="hist-tit1-disp">Nuestros Orígenes</h2>
@@ -196,7 +196,7 @@
         </div>
     </section>
 
-    <section class="gallery-section">
+    <section class="gallery-section" id="galeria-section">
         <h2>Nuestro Espacio</h2>
         <div class="scrolling-gallery" id="galeria-display">
             <!-- Cargado desde Firestore -->
@@ -264,11 +264,15 @@
                 const hSnap = await getDoc(doc(db, 'configuracion', 'historia'));
                 if (hSnap.exists()) {
                     const d = hSnap.data();
-                    for(let i=1; i<=3; i++) {
-                        if(d[`b${i}`]) {
-                            if(d[`b${i}`].tit) document.getElementById(`hist-tit${i}-disp`).textContent = d[`b${i}`].tit;
-                            if(d[`b${i}`].txt) document.getElementById(`hist-txt${i}-disp`).textContent = d[`b${i}`].txt;
-                            if(d[`b${i}`].img) document.getElementById(`story-img-${i}`).src = d[`b${i}`].img;
+                    if(d.habilitado === false) {
+                        document.getElementById('historia-section').style.display = 'none';
+                    } else {
+                        for(let i=1; i<=3; i++) {
+                            if(d[`b${i}`]) {
+                                if(d[`b${i}`].tit) document.getElementById(`hist-tit${i}-disp`).textContent = d[`b${i}`].tit;
+                                if(d[`b${i}`].txt) document.getElementById(`hist-txt${i}-disp`).textContent = d[`b${i}`].txt;
+                                if(d[`b${i}`].img) document.getElementById(`story-img-${i}`).src = d[`b${i}`].img;
+                            }
                         }
                     }
                 }
@@ -276,19 +280,24 @@
 
             // Galeria
             try {
-                const gSnap = await getDocs(collection(db, 'galeria'));
-                const cont = document.getElementById('galeria-display');
-                if(!gSnap.empty) {
-                    cont.innerHTML = '';
-                    gSnap.forEach(d => {
-                        cont.innerHTML += `<div class="gallery-item"><img src="${d.data().url}" alt="Nuestro Espacio"></div>`;
-                    });
+                const galOpts = await getDoc(doc(db, 'configuracion', 'galeriaOpciones'));
+                if(galOpts.exists() && galOpts.data().habilitado === false) {
+                    document.getElementById('galeria-section').style.display = 'none';
                 } else {
-                    cont.innerHTML = `
-                        <div class="gallery-item"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=500" alt="Ambiente"></div>
-                        <div class="gallery-item"><img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=500" alt="Comida"></div>
-                        <div class="gallery-item"><img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=500" alt="Detalles"></div>
-                    `;
+                    const gSnap = await getDocs(collection(db, 'galeria'));
+                    const cont = document.getElementById('galeria-display');
+                    if(!gSnap.empty) {
+                        cont.innerHTML = '';
+                        gSnap.forEach(d => {
+                            cont.innerHTML += `<div class="gallery-item"><img src="${d.data().url}" alt="Nuestro Espacio"></div>`;
+                        });
+                    } else {
+                        cont.innerHTML = `
+                            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=500" alt="Ambiente"></div>
+                            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=500" alt="Comida"></div>
+                            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=500" alt="Detalles"></div>
+                        `;
+                    }
                 }
             } catch(e) {}
         }

@@ -196,7 +196,7 @@
     </section>
 
     <!-- NUESTRA CARTA -->
-    <section class="split-section">
+    <section class="split-section" id="nc-section">
         <div class="split-image" id="nc-imagen" style="background-image: url('https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=1000');"></div>
         <div class="split-text">
             <h2 id="nc-titulo-display">Nuestra Carta</h2>
@@ -245,7 +245,7 @@
         <div class="menu-dia-layout">
             <div class="menu-dia-info-card">
                 <h3><i class="fa-regular fa-clock" style="color:var(--greda-orange); margin-right:8px;"></i> ¿Qué incluye?</h3>
-                <ul>
+                <ul id="md-incluye-display">
                     <li><i class="fa-solid fa-utensils"></i> Dos opciones de Entradas</li>
                     <li><i class="fa-solid fa-utensils"></i> Cuatro – Cinco opciones de Fondo</li>
                     <li><i class="fa-solid fa-utensils"></i> Dos opciones de Postre</li>
@@ -254,12 +254,12 @@
                     <i class="fa-solid fa-leaf"></i> Siempre hay opciones vegetarianas
                 </p>
                 <div class="price-box">
-                    <p><strong>Acompañamientos:</strong> Arroz, Papas con mayonesa, Espirales al ciboulette, Papas doradas o Ensalada surtida.</p>
+                    <p><strong>Acompañamientos:</strong> <span id="md-acomp-display">Arroz, Papas con mayonesa, Espirales al ciboulette, Papas doradas o Ensalada surtida.</span></p>
                     <br>
-                    <p>🍽️ <strong>Servir: $8.500</strong></p>
+                    <p>🍽️ <strong>Servir: <span id="md-precio-s-display">$8.500</span></strong></p>
                     <p style="font-size:0.9rem; color:#777;">Ensalada o consomé + postre</p>
                     <br>
-                    <p>📦 <strong>Llevar: $6.300</strong></p>
+                    <p>📦 <strong>Llevar: <span id="md-precio-l-display">$6.300</span></strong></p>
                     <p style="font-size:0.9rem; color:#777;">Ensalada o consomé</p>
                 </div>
                 <!-- Botones de consulta -->
@@ -347,11 +347,15 @@
                             document.getElementById('qs-texto-display').textContent = d.quienesSomosTexto;
                         }
                     }
-                    if (d.nuestraCartaTitulo) {
-                        document.getElementById('nc-titulo-display').textContent = d.nuestraCartaTitulo;
-                    }
-                    if (d.nuestraCartaImg) {
-                        document.getElementById('nc-imagen').style.backgroundImage = `url('${d.nuestraCartaImg}')`;
+                    if (d.nuestraCartaHabilitado === false) {
+                        document.getElementById('nc-section').style.display = 'none';
+                    } else {
+                        if (d.nuestraCartaTitulo) {
+                            document.getElementById('nc-titulo-display').textContent = d.nuestraCartaTitulo;
+                        }
+                        if (d.nuestraCartaImg) {
+                            document.getElementById('nc-imagen').style.backgroundImage = `url('${d.nuestraCartaImg}')`;
+                        }
                     }
                 }
 
