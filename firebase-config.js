@@ -1,24 +1,19 @@
-// ============================================================
-// firebase-config.js
-// ============================================================
-// PASO A PASO PARA CONFIGURAR (léelo en INSTRUCCIONES-FIREBASE.md):
-// 1. Crea un proyecto en https://console.firebase.google.com
-// 2. Ve a "Configuración del proyecto" (ícono de engranaje) > "Tus apps"
-// 3. Crea una app web (ícono </>) y copia el objeto firebaseConfig que te entrega
-// 4. Reemplaza TODOS los valores de abajo por los tuyos
-// ============================================================
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "PEGA_AQUI_TU_API_KEY",
-  authDomain: "PEGA_AQUI_TU_PROYECTO.firebaseapp.com",
-  projectId: "PEGA_AQUI_TU_PROYECTO_ID",
-  storageBucket: "PEGA_AQUI_TU_PROYECTO.firebasestorage.app",
-  messagingSenderId: "PEGA_AQUI_TU_SENDER_ID",
-  appId: "PEGA_AQUI_TU_APP_ID"
+  apiKey: "AIzaSyDTntbgU9skd7IKVXUOJvt_RjBJrgvAfwM",
+  authDomain: "latetera.firebaseapp.com",
+  projectId: "latetera",
+  storageBucket: "latetera.firebasestorage.app",
+  messagingSenderId: "809326648027",
+  appId: "1:809326648027:web:0246c658b4be25dacc8afe"
 };
 
 const app = initializeApp(firebaseConfig);
