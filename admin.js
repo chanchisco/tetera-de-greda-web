@@ -79,31 +79,33 @@ async function openCropper(file, aspectRatio) {
         
         const reader = new FileReader();
         reader.onload = (e) => {
-            cropperImg.src = e.target.result;
             cropperImg.onload = () => {
-                // Ajustar overlay
-                const cw = cropperContainer.clientWidth;
-                const ch = cropperContainer.clientHeight;
-                let ow, oh;
-                if (cw / ch > aspectRatio) {
-                    oh = ch * 0.9; ow = oh * aspectRatio;
-                } else {
-                    ow = cw * 0.9; oh = ow / aspectRatio;
-                }
-                cropperOverlay.style.width = `${ow}px`;
-                cropperOverlay.style.height = `${oh}px`;
-                cropperOverlay.style.top = `${(ch - oh) / 2}px`;
-                cropperOverlay.style.left = `${(cw - ow) / 2}px`;
-
-                // Inicializar imagen
-                const scale = Math.max(ow / cropperImg.naturalWidth, oh / cropperImg.naturalHeight);
-                cropperZoom.min = scale;
-                cropperZoom.max = scale * 4;
-                cropperZoom.value = scale;
-                updateCropperTransform(0, 0, scale);
-
                 cropperModal.classList.remove('hidden');
+                
+                requestAnimationFrame(() => {
+                    // Ajustar overlay
+                    const cw = cropperContainer.clientWidth;
+                    const ch = cropperContainer.clientHeight;
+                    let ow, oh;
+                    if (cw / ch > aspectRatio) {
+                        oh = ch * 0.9; ow = oh * aspectRatio;
+                    } else {
+                        ow = cw * 0.9; oh = ow / aspectRatio;
+                    }
+                    cropperOverlay.style.width = `${ow}px`;
+                    cropperOverlay.style.height = `${oh}px`;
+                    cropperOverlay.style.top = `${(ch - oh) / 2}px`;
+                    cropperOverlay.style.left = `${(cw - ow) / 2}px`;
+
+                    // Inicializar imagen
+                    const scale = Math.max(ow / cropperImg.naturalWidth, oh / cropperImg.naturalHeight);
+                    cropperZoom.min = scale;
+                    cropperZoom.max = scale * 4;
+                    cropperZoom.value = scale;
+                    updateCropperTransform(0, 0, scale);
+                });
             };
+            cropperImg.src = e.target.result;
         };
         reader.readAsDataURL(file);
     });
@@ -633,15 +635,27 @@ document.getElementById('galeria-habilitar').addEventListener('change', async (e
 
 window.subirMultiGaleria = async (input) => {
     if(input.files.length === 0) return;
-    showStatus('galeria-status', 'Subiendo imágenes...');
-    for(let file of input.files) {
-        // Usar compresor directo para multiples, sin recortador para no bloquear con multiples modales
-        const b64 = await compressImage(file);
-        await addDoc(collection(db, 'galeria'), { url: b64, ts: Date.now() });
+    
+    if(input.files.length === 1) {
+        const b64 = await openCropper(input.files[0], 4/3); // Aspect ratio galeria
+        input.value = '';
+        if(b64) {
+            showStatus('galeria-status', 'Subiendo imagen...');
+            await addDoc(collection(db, 'galeria'), { url: b64, ts: Date.now() });
+            showStatus('galeria-status', 'Imagen agregada');
+            cargarGaleria();
+        }
+    } else {
+        showStatus('galeria-status', 'Subiendo imágenes...');
+        for(let file of input.files) {
+            // Usar compresor directo para multiples, sin recortador para no bloquear con multiples modales
+            const b64 = await compressImage(file);
+            await addDoc(collection(db, 'galeria'), { url: b64, ts: Date.now() });
+        }
+        input.value = '';
+        showStatus('galeria-status', 'Imágenes agregadas');
+        cargarGaleria();
     }
-    input.value = '';
-    showStatus('galeria-status', 'Imágenes agregadas');
-    cargarGaleria();
 };
 
 window.borrarGaleria = async (id) => {
