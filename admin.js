@@ -25,9 +25,17 @@ btnLogout.addEventListener('click', () => signOut(auth));
 
 function showStatus(elemId, msg, isError = false) {
     const el = document.getElementById(elemId);
+    if (!el) { console.warn('showStatus: elemento no encontrado:', elemId); return; }
     el.innerHTML = isError ? `<i class="fa-solid fa-triangle-exclamation"></i> ${msg}` : `<i class="fa-solid fa-rotate"></i> ${msg}`;
     el.className = 'status-msg ' + (isError ? 'status-err' : 'status-ok');
-    setTimeout(() => { el.innerHTML = ''; }, 3500);
+    setTimeout(() => { if(el) el.innerHTML = ''; }, 3500);
+}
+
+function scrollToTop() {
+    // Intenta scroll en el contenedor .content primero, luego window
+    const contentEl = document.querySelector('.content');
+    if (contentEl) contentEl.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function initAdmin() {
@@ -38,7 +46,6 @@ function initAdmin() {
     cargarMenuDiaImgs();
     cargarHistoria();
     cargarGaleria();
-    renderHistoriaForms();
 }
 
 // Nav Tabs
@@ -48,6 +55,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(`page-${btn.dataset.page}`).classList.add('active');
+        scrollToTop();
     });
 });
 
@@ -60,9 +68,9 @@ document.getElementById('plato-oferta-cb').addEventListener('change', (e) => {
 
 /* ============================
    CROPPER MODAL (Universal)
+   LÓGICA CORREGIDA: usamos posición relativa del img dentro del container
 ============================ */
 let cropperResolve = null;
-let currentCropperImg = null;
 let currentAspectRatio = 1;
 let imgDrag = { active: false, startX: 0, startY: 0, bgX: 0, bgY: 0 };
 
@@ -72,18 +80,21 @@ const cropperOverlay = document.getElementById('cropper-overlay');
 const cropperZoom = document.getElementById('cropper-zoom');
 const cropperContainer = document.getElementById('cropper-container');
 
+// Posición actual de la imagen (en px relativos al centro del contenedor)
+let imgOffsetX = 0, imgOffsetY = 0, imgScale = 1;
+
 async function openCropper(b64Data, aspectRatio) {
     return new Promise((resolve) => {
         cropperResolve = resolve;
         currentAspectRatio = aspectRatio;
-        
+
         cropperImg.onload = () => {
             cropperModal.classList.remove('hidden');
-            
             requestAnimationFrame(() => {
-                // Ajustar overlay
                 const cw = cropperContainer.clientWidth;
                 const ch = cropperContainer.clientHeight;
+
+                // Calcular tamaño del overlay (area de recorte visible)
                 let ow, oh;
                 if (cw / ch > aspectRatio) {
                     oh = ch * 0.9; ow = oh * aspectRatio;
@@ -92,112 +103,124 @@ async function openCropper(b64Data, aspectRatio) {
                 }
                 cropperOverlay.style.width = `${ow}px`;
                 cropperOverlay.style.height = `${oh}px`;
-                cropperOverlay.style.top = `${(ch - oh) / 2}px`;
+                // Centrar overlay
+                cropperOverlay.style.position = 'absolute';
                 cropperOverlay.style.left = `${(cw - ow) / 2}px`;
+                cropperOverlay.style.top = `${(ch - oh) / 2}px`;
 
-                // Inicializar imagen
-                const scale = Math.max(ow / cropperImg.naturalWidth, oh / cropperImg.naturalHeight);
-                cropperZoom.min = scale;
-                cropperZoom.max = scale * 4;
-                cropperZoom.value = scale;
-                updateCropperTransform(0, 0, scale);
+                // Escala inicial: la imagen llena el overlay
+                const scaleW = ow / cropperImg.naturalWidth;
+                const scaleH = oh / cropperImg.naturalHeight;
+                imgScale = Math.max(scaleW, scaleH);
+                imgOffsetX = 0;
+                imgOffsetY = 0;
+
+                cropperZoom.min = imgScale * 0.8;
+                cropperZoom.max = imgScale * 5;
+                cropperZoom.step = imgScale * 0.01;
+                cropperZoom.value = imgScale;
+
+                applyCropperTransform();
             });
         };
         cropperImg.src = b64Data;
     });
 }
 
-function updateCropperTransform(x, y, scale) {
-    cropperImg.dataset.x = x;
-    cropperImg.dataset.y = y;
-    cropperImg.dataset.scale = scale;
-    cropperImg.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale})`;
+function applyCropperTransform() {
+    // La imagen está posicionada en el centro del container con transform
+    cropperImg.style.position = 'absolute';
+    cropperImg.style.top = '50%';
+    cropperImg.style.left = '50%';
+    cropperImg.style.transformOrigin = 'center center';
+    cropperImg.style.transform = `translate(calc(-50% + ${imgOffsetX}px), calc(-50% + ${imgOffsetY}px)) scale(${imgScale})`;
+    cropperImg.style.cursor = 'grab';
+    cropperImg.style.userSelect = 'none';
+    cropperImg.style.pointerEvents = 'none';
 }
 
 cropperZoom.addEventListener('input', (e) => {
-    updateCropperTransform(parseFloat(cropperImg.dataset.x||0), parseFloat(cropperImg.dataset.y||0), e.target.value);
+    imgScale = parseFloat(e.target.value);
+    applyCropperTransform();
 });
 
 function cDragStart(e) {
-    if(e.target === cropperZoom || e.target.tagName==='BUTTON') return;
+    if (e.target === cropperZoom || e.target.tagName === 'BUTTON') return;
     imgDrag.active = true;
-    imgDrag.startX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
-    imgDrag.startY = e.type.includes('mouse') ? e.pageY : e.touches[0].pageY;
-    imgDrag.bgX = parseFloat(cropperImg.dataset.x || 0);
-    imgDrag.bgY = parseFloat(cropperImg.dataset.y || 0);
+    const pt = e.touches ? e.touches[0] : e;
+    imgDrag.startX = pt.clientX;
+    imgDrag.startY = pt.clientY;
+    imgDrag.bgX = imgOffsetX;
+    imgDrag.bgY = imgOffsetY;
     e.preventDefault();
 }
 function cDragMove(e) {
-    if(!imgDrag.active) return;
+    if (!imgDrag.active) return;
     e.preventDefault();
-    const x = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
-    const y = e.type.includes('mouse') ? e.pageY : e.touches[0].pageY;
-    const dx = x - imgDrag.startX;
-    const dy = y - imgDrag.startY;
-    updateCropperTransform(imgDrag.bgX + dx, imgDrag.bgY + dy, cropperImg.dataset.scale);
+    const pt = e.touches ? e.touches[0] : e;
+    imgOffsetX = imgDrag.bgX + (pt.clientX - imgDrag.startX);
+    imgOffsetY = imgDrag.bgY + (pt.clientY - imgDrag.startY);
+    applyCropperTransform();
 }
 function cDragEnd() { imgDrag.active = false; }
 
 cropperContainer.addEventListener('mousedown', cDragStart);
-cropperContainer.addEventListener('touchstart', cDragStart, {passive:false});
+cropperContainer.addEventListener('touchstart', cDragStart, { passive: false });
 window.addEventListener('mousemove', cDragMove);
-window.addEventListener('touchmove', cDragMove, {passive:false});
+window.addEventListener('touchmove', cDragMove, { passive: false });
 window.addEventListener('mouseup', cDragEnd);
 window.addEventListener('touchend', cDragEnd);
 
 document.getElementById('btn-crop-cancel').addEventListener('click', () => {
     cropperModal.classList.add('hidden');
-    if(cropperResolve) cropperResolve(null);
+    if (cropperResolve) cropperResolve(null);
 });
 
 document.getElementById('btn-crop-apply').addEventListener('click', async () => {
-    const scale = parseFloat(cropperImg.dataset.scale);
-    const x = parseFloat(cropperImg.dataset.x);
-    const y = parseFloat(cropperImg.dataset.y);
     const cw = cropperContainer.clientWidth;
     const ch = cropperContainer.clientHeight;
-    
-    // Obtener dimensiones del overlay
-    const overlayRect = cropperOverlay.getBoundingClientRect();
-    const contRect = cropperContainer.getBoundingClientRect();
-    const ovX = overlayRect.left - contRect.left;
-    const ovY = overlayRect.top - contRect.top;
-    const ovW = overlayRect.width;
-    const ovH = overlayRect.height;
 
-    // Calcular posición real en la imagen original
-    const imgCenterX = cropperImg.naturalWidth / 2;
-    const imgCenterY = cropperImg.naturalHeight / 2;
-    
-    // El contenedor está centrado, calculamos el offset de la esquina superior izquierda del overlay relativo al centro de la imagen
-    const cropX = imgCenterX - ((cw / 2 - ovX) / scale) - (x / scale);
-    const cropY = imgCenterY - ((ch / 2 - ovY) / scale) - (y / scale);
-    const cropW = ovW / scale;
-    const cropH = ovH / scale;
+    // Centro del contenedor
+    const containerCenterX = cw / 2;
+    const containerCenterY = ch / 2;
+
+    // Overlay bounds relativas al contenedor
+    const ovLeft = parseFloat(cropperOverlay.style.left);
+    const ovTop = parseFloat(cropperOverlay.style.top);
+    const ovW = parseFloat(cropperOverlay.style.width);
+    const ovH = parseFloat(cropperOverlay.style.height);
+
+    // El centro de la imagen en coordenadas del contenedor
+    const imgCenterInContainer_X = containerCenterX + imgOffsetX;
+    const imgCenterInContainer_Y = containerCenterY + imgOffsetY;
+
+    // Esquina superior izquierda del overlay relativa al centro de la imagen (en coords imagen original)
+    const cropX = (ovLeft - imgCenterInContainer_X) / imgScale + cropperImg.naturalWidth / 2;
+    const cropY = (ovTop - imgCenterInContainer_Y) / imgScale + cropperImg.naturalHeight / 2;
+    const cropW = ovW / imgScale;
+    const cropH = ovH / imgScale;
+
+    // Canvas de salida en alta resolución
+    const outW = Math.round(Math.min(2400, Math.max(800, ovW * 2)));
+    const outH = Math.round(outW / currentAspectRatio);
 
     const canvas = document.createElement('canvas');
-    canvas.width = Math.min(1200, ovW * 2); // Max resolucion razonable
-    canvas.height = canvas.width / currentAspectRatio;
+    canvas.width = outW;
+    canvas.height = outH;
     const ctx = canvas.getContext('2d');
-    
-    ctx.drawImage(cropperImg, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
-    
-    const base64 = canvas.toDataURL('image/jpeg', 0.85); // comprimido
+    ctx.drawImage(cropperImg, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
+
+    const base64 = canvas.toDataURL('image/jpeg', 0.9);
     cropperModal.classList.add('hidden');
-    
-    if(cropperResolve) cropperResolve(base64);
+    if (cropperResolve) cropperResolve(base64);
 });
 
-// Helpers
-function dataURLtoFile(dataurl, filename) {
-    var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-    while(n--){ u8arr[n] = bstr.charCodeAt(n); }
-    return new File([u8arr], filename, {type:mime});
-}
-
-async function compressImage(file) {
-    const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1200, useWebWorker: true };
+/* ============================
+   HELPERS
+============================ */
+async function compressImage(file, maxMB = 0.8, maxDim = 2400) {
+    // Usar maxDim y calidad más alta para portadas que son grandes
+    const options = { maxSizeMB: maxMB, maxWidthOrHeight: maxDim, useWebWorker: true, initialQuality: 0.92 };
     try {
         const compressed = await imageCompression(file, options);
         return await fileToBase64(compressed);
@@ -218,43 +241,47 @@ function renderPreview(imgId, src, noImgId, delBtnId) {
     const img = document.getElementById(imgId);
     const no = document.getElementById(noImgId);
     const del = document.getElementById(delBtnId);
-    if(src) { img.src = src; img.classList.remove('hidden'); no.classList.add('hidden'); if(del) del.classList.remove('hidden'); }
-    else { img.classList.add('hidden'); no.classList.remove('hidden'); img.src = ''; if(del) del.classList.add('hidden'); }
+    if (src) { img.src = src; img.classList.remove('hidden'); no.classList.add('hidden'); if (del) del.classList.remove('hidden'); }
+    else { img.classList.add('hidden'); no.classList.remove('hidden'); img.src = ''; if (del) del.classList.add('hidden'); }
 }
 
 /* ============================
    UTILIDADES RECORTADOR
 ============================ */
-// Funciones globales para que el HTML pueda llamarlas onchange
 window.abrirRecortadorPlato = async (input) => {
-    if(input.files.length === 0) return;
+    if (input.files.length === 0) return;
     showStatus('plato-status', 'Procesando imagen...');
     const b64_temp = await compressImage(input.files[0]);
-    const b64 = await openCropper(b64_temp, 4/3); // Aspect ratio platos
-    input.value = ''; // Reset input
-    if(b64) {
+    const b64 = await openCropper(b64_temp, 4 / 3);
+    input.value = '';
+    if (b64) {
         document.getElementById('plato-preview-box').style.display = 'flex';
         document.getElementById('plato-img-current').src = b64;
-        estadoPlatoImg.base64 = b64; // Guarda el nuevo base64
-        showStatus('plato-status', 'Imagen lista para guardar');
+        estadoPlatoImg.base64 = b64;
+        showStatus('plato-status', 'Imagen lista. Recuerda guardar.');
     } else {
         showStatus('plato-status', '');
     }
 };
 
+// Genera la función de recorte para cada contexto
 window.recortarYGuardar = async (prefix, input, ratio, saveFunc) => {
-    if(input.files.length === 0) return;
-    const tipo = prefix.split('-')[1] || prefix;
-    showStatus(`${prefix}-status` || `${tipo}-status` || 'qs-status', 'Procesando...');
+    if (input.files.length === 0) return;
     const b64_temp = await compressImage(input.files[0]);
     const b64 = await openCropper(b64_temp, ratio);
     input.value = '';
-    if(b64) {
-        // Ejecutar funcion de guardado y pasarle el base64
-        saveFunc(prefix, b64);
-    } else {
-        showStatus(`${prefix}-status` || `${tipo}-status` || 'qs-status', '');
-    }
+    if (b64) saveFunc(prefix, b64);
+};
+
+// Para historia (necesita statusId propio)
+window.recortarHistoria = async (idx, input) => {
+    if (input.files.length === 0) return;
+    showStatus(`hist-${idx}-status`, 'Procesando imagen...');
+    const b64_temp = await compressImage(input.files[0]);
+    const b64 = await openCropper(b64_temp, 4 / 3);
+    input.value = '';
+    if (!b64) { showStatus(`hist-${idx}-status`, ''); return; }
+    await guardarHistoriaImgSolo(idx, b64);
 };
 
 /* ============================
@@ -269,24 +296,24 @@ platoForm.addEventListener('submit', async (e) => {
     btnSubmit.disabled = true; btnSubmit.textContent = "Guardando...";
 
     const id = document.getElementById('plato-id').value;
-    const data = { 
-        nombre: document.getElementById('plato-nombre').value, 
-        precio: document.getElementById('plato-precio').value, 
-        descripcion: document.getElementById('plato-desc').value, 
-        categoria: document.getElementById('plato-categoria').value, 
+    const data = {
+        nombre: document.getElementById('plato-nombre').value,
+        precio: document.getElementById('plato-precio').value,
+        descripcion: document.getElementById('plato-desc').value,
+        categoria: document.getElementById('plato-categoria').value,
         imagenBase64: estadoPlatoImg.base64,
-        imagenPos: null, // Ya no se usa posicion, la imagen viene recortada
-        oferta: document.getElementById('plato-oferta-cb').checked, 
-        ofertaEtiqueta: document.getElementById('plato-oferta-etiqueta').value, 
+        imagenPos: null,
+        oferta: document.getElementById('plato-oferta-cb').checked,
+        ofertaEtiqueta: document.getElementById('plato-oferta-etiqueta').value,
         ofertaPrecio: document.getElementById('plato-oferta-precio').value
     };
 
     try {
-        if (id) { await updateDoc(doc(db, 'platos', id), data); showStatus('plato-status', 'Actualizado correctamente'); } 
+        if (id) { await updateDoc(doc(db, 'platos', id), data); showStatus('plato-status', 'Actualizado correctamente'); }
         else { data.orden = 999; await addDoc(collection(db, 'platos'), data); showStatus('plato-status', 'Plato creado'); }
         limpiarPlatoForm();
         cargarPlatos();
-    } catch(e) { showStatus('plato-status', 'Error al guardar', true); }
+    } catch (e) { showStatus('plato-status', 'Error al guardar', true); }
     btnSubmit.disabled = false; btnSubmit.innerHTML = `Guardar Plato`;
 });
 
@@ -299,7 +326,6 @@ function limpiarPlatoForm() {
     document.getElementById('plato-oferta-fields').classList.add('hidden');
 }
 document.getElementById('plato-cancel').addEventListener('click', limpiarPlatoForm);
-
 document.getElementById('btn-eliminar-foto-plato').addEventListener('click', () => {
     document.getElementById('plato-preview-box').style.display = 'none';
     estadoPlatoImg.base64 = null;
@@ -314,10 +340,13 @@ async function cargarPlatos() {
         const d = docSnap.data();
         const div = document.createElement('div');
         div.className = 'item-row';
-        const imgStyle = d.imagenBase64 ? `background-image:url('${d.imagenBase64}'); background-position:${d.imagenPos?.x||50}% ${d.imagenPos?.y||50}%;` : '';
         const tag = d.oferta ? `<span class="tag tag-oferta"><i class="fa-solid fa-tag"></i> Oferta</span>` : '';
+        // Thumbnail más grande para que se vea bien
+        const imgHtml = d.imagenBase64
+            ? `<img class="item-row-img-thumb" src="${d.imagenBase64}" alt="${d.nombre}">`
+            : `<div class="item-row-img-thumb item-row-img-placeholder"><i class="fa-solid fa-image"></i></div>`;
         div.innerHTML = `
-            <div class="item-row-img" style="${imgStyle}"></div>
+            ${imgHtml}
             <div class="item-row-info"><strong>${d.nombre}</strong> ${tag}<p>${d.precio} - ${d.categoria}</p></div>
             <div class="item-row-actions">
                 <button class="btn-edit-sm" onclick="editarPlato('${docSnap.id}')"><i class="fa-solid fa-pen"></i></button>
@@ -327,34 +356,31 @@ async function cargarPlatos() {
     });
 }
 
-window.borrarPlato = async (id) => { if(confirm('¿Eliminar este plato?')) { await deleteDoc(doc(db, 'platos', id)); cargarPlatos(); } };
+window.borrarPlato = async (id) => { if (confirm('¿Eliminar este plato?')) { await deleteDoc(doc(db, 'platos', id)); cargarPlatos(); } };
 
 window.editarPlato = async (id) => {
     const docSnap = await getDoc(doc(db, 'platos', id));
-    if(docSnap.exists()) {
+    if (docSnap.exists()) {
         const d = docSnap.data();
         document.getElementById('plato-id').value = id;
         document.getElementById('plato-nombre').value = d.nombre;
         document.getElementById('plato-precio').value = d.precio;
         document.getElementById('plato-desc').value = d.descripcion || '';
         document.getElementById('plato-categoria').value = d.categoria;
-        
         document.getElementById('plato-oferta-cb').checked = d.oferta || false;
         document.getElementById('plato-oferta-etiqueta').value = d.ofertaEtiqueta || '';
         document.getElementById('plato-oferta-precio').value = d.ofertaPrecio || '';
         document.getElementById('plato-oferta-fields').classList.toggle('hidden', !d.oferta);
 
-        if(d.imagenBase64) {
+        if (d.imagenBase64) {
             estadoPlatoImg.base64 = d.imagenBase64;
             document.getElementById('plato-preview-box').style.display = 'flex';
             document.getElementById('plato-img-current').src = d.imagenBase64;
-            // Soporte para imagenes antiguas con posicion
-            document.getElementById('plato-img-current').style.objectPosition = d.imagenPos ? `${d.imagenPos.x}% ${d.imagenPos.y}%` : '50% 50%';
         } else {
             estadoPlatoImg.base64 = null;
             document.getElementById('plato-preview-box').style.display = 'none';
         }
-        window.scrollTo(0,0);
+        scrollToTop();
     }
 };
 
@@ -366,22 +392,20 @@ bebidaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btnSubmit = bebidaForm.querySelector('button[type="submit"]');
     btnSubmit.disabled = true; btnSubmit.textContent = "Guardando...";
-
     const id = document.getElementById('bebida-id').value;
-    const data = { 
-        nombre: document.getElementById('bebida-nombre').value, 
-        precio: document.getElementById('bebida-precio').value, 
-        subcategoria: document.getElementById('bebida-subcategoria').value, 
-        categoria: 'bebestibles' 
+    const data = {
+        nombre: document.getElementById('bebida-nombre').value,
+        precio: document.getElementById('bebida-precio').value,
+        subcategoria: document.getElementById('bebida-subcategoria').value,
+        categoria: 'bebestibles'
     };
     try {
         if (id) { await updateDoc(doc(db, 'bebidas', id), data); showStatus('bebida-status', 'Actualizado correctamente'); }
         else { await addDoc(collection(db, 'bebidas'), data); showStatus('bebida-status', 'Bebida creada'); }
         bebidaForm.reset(); document.getElementById('bebida-id').value = ''; cargarBebidas();
-    } catch(e) { showStatus('bebida-status', 'Error al guardar', true); }
+    } catch (e) { showStatus('bebida-status', 'Error al guardar', true); }
     btnSubmit.disabled = false; btnSubmit.innerHTML = `Guardar Bebida`;
 });
-
 document.getElementById('bebida-cancel').addEventListener('click', () => { bebidaForm.reset(); document.getElementById('bebida-id').value = ''; });
 
 async function cargarBebidas() {
@@ -402,34 +426,30 @@ async function cargarBebidas() {
         lista.appendChild(div);
     });
 }
-
-window.borrarBebida = async (id) => { if(confirm('¿Eliminar?')) { await deleteDoc(doc(db, 'bebidas', id)); cargarBebidas(); } };
+window.borrarBebida = async (id) => { if (confirm('¿Eliminar?')) { await deleteDoc(doc(db, 'bebidas', id)); cargarBebidas(); } };
 window.editarBebida = async (id) => {
     const docSnap = await getDoc(doc(db, 'bebidas', id));
-    if(docSnap.exists()) {
+    if (docSnap.exists()) {
         const d = docSnap.data();
         document.getElementById('bebida-id').value = id;
         document.getElementById('bebida-nombre').value = d.nombre;
         document.getElementById('bebida-precio').value = d.precio;
         document.getElementById('bebida-subcategoria').value = d.subcategoria;
-        window.scrollTo(0,0);
+        scrollToTop();
     }
 };
 
 /* ============================
-   CONFIGURACIÓN GENERAL 
+   CONFIGURACIÓN GENERAL
 ============================ */
 window.cargarConfiguracionGeneral = async () => {
     window.recargarPortadas();
-    
-    // Secciones Index
     const secciones = await getDoc(doc(db, 'configuracion', 'imagenesSeccion'));
-    if(secciones.exists()) {
+    if (secciones.exists()) {
         const s = secciones.data();
         document.getElementById('qs-habilitar').checked = s.quienesSomosHabilitado !== false;
         document.getElementById('qs-texto').value = s.quienesSomosTexto || '';
         renderPreview('qs-img-img', s.quienesSomosImg, 'qs-img-no', 'btn-del-qs-img');
-        
         document.getElementById('nc-habilitar').checked = s.nuestraCartaHabilitado !== false;
         document.getElementById('nc-titulo').value = s.nuestraCartaTitulo || '';
         renderPreview('nc-img-img', s.nuestraCartaImg, 'nc-img-no', 'btn-del-nc-img');
@@ -438,7 +458,7 @@ window.cargarConfiguracionGeneral = async () => {
 
 window.recargarPortadas = async () => {
     const portadas = await getDoc(doc(db, 'configuracion', 'portadas'));
-    if(portadas.exists()) {
+    if (portadas.exists()) {
         const p = portadas.data();
         renderPreview('portada-inicio-img', p.inicio, 'portada-inicio-no', 'btn-del-portada-inicio');
         renderPreview('portada-nosotros-img', p.nosotros, 'portada-nosotros-no', 'btn-del-portada-nosotros');
@@ -447,47 +467,44 @@ window.recargarPortadas = async () => {
 };
 
 window.guardarPortada = async (prefix, base64) => {
-    const tipo = prefix.split('-')[1]; // portada-inicio -> inicio
+    const tipo = prefix.replace('portada-', '');
     showStatus(`portada-${tipo}-status`, 'Guardando...');
     await setDoc(doc(db, 'configuracion', 'portadas'), { [tipo]: base64 }, { merge: true });
     renderPreview(`portada-${tipo}-img`, base64, `portada-${tipo}-no`, `btn-del-portada-${tipo}`);
     showStatus(`portada-${tipo}-status`, 'Actualizado correctamente');
 };
 window.borrarPortada = async (tipo) => {
-    if(confirm('¿Eliminar esta portada?')) {
+    if (confirm('¿Eliminar esta portada?')) {
         await setDoc(doc(db, 'configuracion', 'portadas'), { [tipo]: null }, { merge: true });
         renderPreview(`portada-${tipo}-img`, null, `portada-${tipo}-no`, `btn-del-portada-${tipo}`);
     }
 };
 
-// Menu del dia Imgs
 window.cargarMenuDiaImgs = async () => {
     const menudia = await getDoc(doc(db, 'configuracion', 'menuDia'));
-    if(menudia.exists()) {
+    if (menudia.exists()) {
         const m = menudia.data();
         renderPreview('menudia-img1-img', m.img1, 'menudia-img1-no', 'btn-del-menudia-img1');
         renderPreview('menudia-img2-img', m.img2, 'menudia-img2-no', 'btn-del-menudia-img2');
     }
 };
-
 window.guardarMenuDiaImg = async (prefix, base64) => {
-    const tipo = prefix.split('-')[1]; // menudia-img1 -> img1
+    const tipo = prefix.replace('menudia-', '');
     showStatus(`menudia-${tipo}-status`, 'Guardando...');
     await setDoc(doc(db, 'configuracion', 'menuDia'), { [tipo]: base64 }, { merge: true });
     renderPreview(`menudia-${tipo}-img`, base64, `menudia-${tipo}-no`, `btn-del-menudia-${tipo}`);
     showStatus(`menudia-${tipo}-status`, 'Actualizado correctamente');
 };
 window.borrarMenuDiaImg = async (tipo) => {
-    if(confirm('¿Eliminar esta imagen?')) {
+    if (confirm('¿Eliminar esta imagen?')) {
         await setDoc(doc(db, 'configuracion', 'menuDia'), { [tipo]: null }, { merge: true });
         renderPreview(`menudia-${tipo}-img`, null, `menudia-${tipo}-no`, `btn-del-menudia-${tipo}`);
     }
 };
 
-// Menu del dia Textos
 window.cargarTextosMenuDia = async () => {
     const menudia = await getDoc(doc(db, 'configuracion', 'menuDia'));
-    if(menudia.exists()) {
+    if (menudia.exists()) {
         const m = menudia.data();
         document.getElementById('md-incluye').value = m.incluye || '';
         document.getElementById('md-acomp').value = m.acompanamientos || '';
@@ -497,45 +514,37 @@ window.cargarTextosMenuDia = async () => {
 };
 window.guardarTextosMenuDia = async () => {
     showStatus('md-txt-status', 'Guardando...');
-    const data = {
+    await setDoc(doc(db, 'configuracion', 'menuDia'), {
         incluye: document.getElementById('md-incluye').value,
         acompanamientos: document.getElementById('md-acomp').value,
         precioServir: document.getElementById('md-precio-s').value,
         precioLlevar: document.getElementById('md-precio-l').value,
-    };
-    await setDoc(doc(db, 'configuracion', 'menuDia'), data, { merge: true });
+    }, { merge: true });
     showStatus('md-txt-status', 'Actualizado correctamente');
 };
 
-// Secciones Index Extras
 window.guardarQuienesSomos = async (prefix, base64) => {
     showStatus('qs-status', 'Guardando...');
-    let updates = { 
-        quienesSomosHabilitado: document.getElementById('qs-habilitar').checked, 
-        quienesSomosTexto: document.getElementById('qs-texto').value 
+    let updates = {
+        quienesSomosHabilitado: document.getElementById('qs-habilitar').checked,
+        quienesSomosTexto: document.getElementById('qs-texto').value
     };
-    if(base64) {
-        updates.quienesSomosImg = base64;
-        renderPreview('qs-img-img', base64, 'qs-img-no', 'btn-del-qs-img');
-    }
+    if (base64) { updates.quienesSomosImg = base64; renderPreview('qs-img-img', base64, 'qs-img-no', 'btn-del-qs-img'); }
     await setDoc(doc(db, 'configuracion', 'imagenesSeccion'), updates, { merge: true });
     showStatus('qs-status', 'Actualizado correctamente');
 };
 window.guardarNuestraCarta = async (prefix, base64) => {
     showStatus('nc-status', 'Guardando...');
-    let updates = { 
+    let updates = {
         nuestraCartaHabilitado: document.getElementById('nc-habilitar').checked,
-        nuestraCartaTitulo: document.getElementById('nc-titulo').value 
+        nuestraCartaTitulo: document.getElementById('nc-titulo').value
     };
-    if(base64) {
-        updates.nuestraCartaImg = base64;
-        renderPreview('nc-img-img', base64, 'nc-img-no', 'btn-del-nc-img');
-    }
+    if (base64) { updates.nuestraCartaImg = base64; renderPreview('nc-img-img', base64, 'nc-img-no', 'btn-del-nc-img'); }
     await setDoc(doc(db, 'configuracion', 'imagenesSeccion'), updates, { merge: true });
     showStatus('nc-status', 'Actualizado correctamente');
 };
 window.borrarSeccionImagen = async (campo) => {
-    if(confirm('¿Eliminar esta imagen?')) {
+    if (confirm('¿Eliminar esta imagen?')) {
         let f = campo === 'quienesSomos' ? 'qs' : 'nc';
         await setDoc(doc(db, 'configuracion', 'imagenesSeccion'), { [campo + 'Img']: null }, { merge: true });
         renderPreview(`${f}-img-img`, null, `${f}-img-no`, `btn-del-${f}-img`);
@@ -543,64 +552,82 @@ window.borrarSeccionImagen = async (campo) => {
 };
 
 /* ============================
-   HISTORIA (NOSOTROS)
+   HISTORIA (NOSOTROS) — Cada bloque independiente con su propio guardar/toggle
 ============================ */
 let historiaData = {};
 
 window.cargarHistoria = async () => {
     const docSnap = await getDoc(doc(db, 'configuracion', 'historia'));
-    if(docSnap.exists()) {
-        historiaData = docSnap.data();
-        document.getElementById('hist-habilitar').checked = historiaData.habilitado !== false;
-    } else {
-        historiaData = { b1:{}, b2:{}, b3:{}, habilitado: true };
-    }
+    historiaData = docSnap.exists() ? docSnap.data() : { b1: {}, b2: {}, b3: {} };
     renderHistoriaForms();
 };
 
-window.renderHistoriaForms = () => {
+function renderHistoriaForms() {
     const cont = document.getElementById('hist-blocks');
     cont.innerHTML = '';
-    for(let i=1; i<=3; i++) {
+    const titulos = ['Nuestros Orígenes', 'Referente Gastronómico', 'Familia y Comunidad'];
+    for (let i = 1; i <= 3; i++) {
         let b = historiaData[`b${i}`] || {};
+        const habilitado = b.habilitado !== false;
         cont.innerHTML += `
-            <div class="seccion-card">
-                <h3>Bloque ${i}</h3>
-                <input type="text" id="hist-tit${i}" value="${b.tit||''}" placeholder="Título..." style="margin-bottom:10px; font-weight:bold;">
-                <textarea id="hist-txt${i}" rows="3" placeholder="Texto descriptivo...">${b.txt||''}</textarea>
-                <div class="preview-box" style="height:120px; max-width:300px;">
-                    <img id="hist-img${i}-img" ${b.img ? `src="${b.img}"` : 'class="hidden"'}>
-                    <div class="no-img-text ${b.img ? 'hidden':''}" id="hist-img${i}-no">Sin imagen</div>
-                    <button type="button" class="btn-delete-img ${b.img ? '':'hidden'}" id="btn-del-hist-img${i}" onclick="borrarHistoriaImg(${i})"><i class="fa-solid fa-trash"></i></button>
+            <div class="seccion-card" id="hist-card-${i}">
+                <h3>
+                    <span><i class="fa-solid fa-book-open"></i> Bloque ${i}: ${b.tit || titulos[i-1]}</span>
+                </h3>
+                <div class="switch-container">
+                    <label class="switch">
+                        <input type="checkbox" id="hist-habilitar-${i}" ${habilitado ? 'checked' : ''} onchange="guardarBloqueHistoria(${i})">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Mostrar este bloque en la página</span>
                 </div>
-                <input type="file" id="hist-file${i}" accept="image/*" style="max-width:300px;" onchange="recortarYGuardar('hist-${i}', this, 4/3, guardarHistoriaImgSolo)">
+                <label>Título del bloque</label>
+                <input type="text" id="hist-tit${i}" value="${b.tit || ''}" placeholder="${titulos[i-1]}...">
+                <label>Texto descriptivo</label>
+                <textarea id="hist-txt${i}" rows="3" placeholder="Descripción...">${b.txt || ''}</textarea>
+                <label>Imagen del bloque</label>
+                <div class="preview-box" style="height:160px; max-width:100%;">
+                    <img id="hist-img${i}-img" ${b.img ? `src="${b.img}"` : 'class="hidden"'} style="width:100%; height:100%; object-fit:cover;">
+                    <div class="no-img-text ${b.img ? 'hidden' : ''}" id="hist-img${i}-no">Sin imagen</div>
+                    <button type="button" class="btn-delete-img ${b.img ? '' : 'hidden'}" id="btn-del-hist-img${i}" onclick="borrarHistoriaImg(${i})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <input type="file" id="hist-file${i}" accept="image/*" style="margin-top:8px;" onchange="recortarHistoria(${i}, this)">
+                <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+                    <button class="btn-primary" onclick="guardarBloqueHistoria(${i})"><i class="fa-solid fa-floppy-disk"></i> Guardar Bloque ${i}</button>
+                    <button class="btn-secondary" onclick="cargarHistoria()">Restaurar</button>
+                </div>
+                <p id="hist-${i}-status" class="status-msg"></p>
             </div>
         `;
     }
-};
+}
 
-window.guardarHistoriaImgSolo = async (prefix, base64) => {
-    const idx = prefix.split('-')[1];
-    if(!historiaData[`b${idx}`]) historiaData[`b${idx}`] = {};
-    historiaData[`b${idx}`].img = base64;
-    renderPreview(`hist-img${idx}-img`, base64, `hist-img${idx}-no`, `btn-del-hist-img${idx}`);
-    guardarHistoria();
-};
-
-window.guardarHistoria = async () => {
-    showStatus('hist-status', 'Guardando...');
-    historiaData.habilitado = document.getElementById('hist-habilitar').checked;
-    for(let i=1; i<=3; i++) {
-        if(!historiaData[`b${i}`]) historiaData[`b${i}`] = {};
-        historiaData[`b${i}`].tit = document.getElementById(`hist-tit${i}`).value;
-        historiaData[`b${i}`].txt = document.getElementById(`hist-txt${i}`).value;
-    }
+window.guardarBloqueHistoria = async (i) => {
+    showStatus(`hist-${i}-status`, 'Guardando...');
+    if (!historiaData[`b${i}`]) historiaData[`b${i}`] = {};
+    historiaData[`b${i}`].tit = document.getElementById(`hist-tit${i}`).value;
+    historiaData[`b${i}`].txt = document.getElementById(`hist-txt${i}`).value;
+    historiaData[`b${i}`].habilitado = document.getElementById(`hist-habilitar-${i}`).checked;
     await setDoc(doc(db, 'configuracion', 'historia'), historiaData, { merge: true });
-    showStatus('hist-status', 'Actualizado correctamente');
+    showStatus(`hist-${i}-status`, 'Actualizado correctamente');
 };
+
+window.guardarHistoriaImgSolo = async (idx, base64) => {
+    showStatus(`hist-${idx}-status`, 'Guardando imagen...');
+    if (!historiaData[`b${idx}`]) historiaData[`b${idx}`] = {};
+    historiaData[`b${idx}`].img = base64;
+    // También guarda título y texto que haya en los campos
+    historiaData[`b${idx}`].tit = document.getElementById(`hist-tit${idx}`)?.value || historiaData[`b${idx}`].tit || '';
+    historiaData[`b${idx}`].txt = document.getElementById(`hist-txt${idx}`)?.value || historiaData[`b${idx}`].txt || '';
+    historiaData[`b${idx}`].habilitado = document.getElementById(`hist-habilitar-${idx}`)?.checked !== false;
+    await setDoc(doc(db, 'configuracion', 'historia'), historiaData, { merge: true });
+    renderPreview(`hist-img${idx}-img`, base64, `hist-img${idx}-no`, `btn-del-hist-img${idx}`);
+    showStatus(`hist-${idx}-status`, 'Imagen guardada correctamente');
+};
+
 window.borrarHistoriaImg = async (i) => {
-    if(confirm('¿Eliminar esta imagen?')) {
-        if(historiaData[`b${i}`]) historiaData[`b${i}`].img = null;
+    if (confirm('¿Eliminar esta imagen?')) {
+        if (historiaData[`b${i}`]) historiaData[`b${i}`].img = null;
         await setDoc(doc(db, 'configuracion', 'historia'), historiaData, { merge: true });
         renderPreview(`hist-img${i}-img`, null, `hist-img${i}-no`, `btn-del-hist-img${i}`);
     }
@@ -611,47 +638,41 @@ window.borrarHistoriaImg = async (i) => {
 ============================ */
 window.cargarGaleria = async () => {
     const docSnap = await getDoc(doc(db, 'configuracion', 'galeriaOpciones'));
-    if(docSnap.exists()) document.getElementById('galeria-habilitar').checked = docSnap.data().habilitado !== false;
+    if (docSnap.exists()) document.getElementById('galeria-habilitar').checked = docSnap.data().habilitado !== false;
 
     const cont = document.getElementById('galeria-contenedor');
     const addBtn = `<div class="galeria-item galeria-add" onclick="document.getElementById('galeria-file').click()"><i class="fa-solid fa-plus" style="font-size:1.5rem; margin-bottom:5px;"></i> Agregar</div>`;
     cont.innerHTML = 'Cargando...';
-    
     const snap = await getDocs(collection(db, 'galeria'));
     let html = '';
     snap.forEach(d => {
-        html += `<div class="galeria-item"><img src="${d.data().url}"><button class="btn-delete-img" onclick="borrarGaleria('${d.id}')"><i class="fa-solid fa-trash"></i></button></div>`;
+        html += `<div class="galeria-item"><img src="${d.data().url}" style="width:100%;height:100%;object-fit:cover;"><button class="btn-delete-img" onclick="borrarGaleria('${d.id}')"><i class="fa-solid fa-trash"></i></button></div>`;
     });
     cont.innerHTML = addBtn + html;
 };
 
-// Guardar si se habilita o deshabilita
 document.getElementById('galeria-habilitar').addEventListener('change', async (e) => {
     showStatus('galeria-status', 'Guardando...');
-    await setDoc(doc(db, 'configuracion', 'galeriaOpciones'), { habilitado: e.target.checked }, { merge:true });
+    await setDoc(doc(db, 'configuracion', 'galeriaOpciones'), { habilitado: e.target.checked }, { merge: true });
     showStatus('galeria-status', 'Actualizado correctamente');
 });
 
 window.subirMultiGaleria = async (input) => {
-    if(input.files.length === 0) return;
-    
-    if(input.files.length === 1) {
+    if (input.files.length === 0) return;
+    if (input.files.length === 1) {
         showStatus('galeria-status', 'Procesando imagen...');
         const b64_temp = await compressImage(input.files[0]);
-        const b64 = await openCropper(b64_temp, 4/3); // Aspect ratio galeria
+        const b64 = await openCropper(b64_temp, 4 / 3);
         input.value = '';
-        if(b64) {
+        if (b64) {
             showStatus('galeria-status', 'Subiendo imagen...');
             await addDoc(collection(db, 'galeria'), { url: b64, ts: Date.now() });
             showStatus('galeria-status', 'Imagen agregada');
             cargarGaleria();
-        } else {
-            showStatus('galeria-status', '');
-        }
+        } else { showStatus('galeria-status', ''); }
     } else {
         showStatus('galeria-status', 'Subiendo imágenes...');
-        for(let file of input.files) {
-            // Usar compresor directo para multiples, sin recortador para no bloquear con multiples modales
+        for (let file of input.files) {
             const b64 = await compressImage(file);
             await addDoc(collection(db, 'galeria'), { url: b64, ts: Date.now() });
         }
@@ -662,7 +683,7 @@ window.subirMultiGaleria = async (input) => {
 };
 
 window.borrarGaleria = async (id) => {
-    if(confirm('¿Eliminar imagen de la galería?')) {
+    if (confirm('¿Eliminar imagen de la galería?')) {
         await deleteDoc(doc(db, 'galeria', id));
         cargarGaleria();
     }

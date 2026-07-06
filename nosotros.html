@@ -152,14 +152,27 @@
     </header>
 
     <section class="story-section" id="historia-section">
-        <div class="story-block">
+        <div class="story-block" id="historia-block-1">
             <div class="story-text">
                 <h2 id="hist-tit1-disp">Nuestros Orígenes</h2>
                 <p id="hist-txt1-disp">Fundado hace años en Villa Alemana, La Tetera de Greda nació del amor por las raíces chilenas. Cada plato que servimos en nuestras fuentes de greda cuenta una historia de tradición, esfuerzo y familia. Nuestra misión es que cada cliente se sienta como almorzando en su propio hogar, rodeado de sabores auténticos y una atención cálida.</p>
             </div>
-            <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=700" alt="Local" class="story-img" id="story-img-1">
+            <img src="" alt="Local" class="story-img" id="story-img-1" style="display:none;">
         </div>
-   
+        <div class="story-block reverse" id="historia-block-2">
+            <div class="story-text">
+                <h2 id="hist-tit2-disp">Referente Gastronómico</h2>
+                <p id="hist-txt2-disp">A lo largo del tiempo, nos hemos convertido en un referente gastronómico de la Quinta Región, manteniendo siempre la calidad de nuestras materias primas y el respeto por las recetas de antaño. Nuestros ingredientes son seleccionados con cuidado, y nuestras gredas traídas del sur le dan ese toque único a cada preparación.</p>
+            </div>
+            <img src="" alt="Comida en greda" class="story-img" id="story-img-2" style="display:none;">
+        </div>
+        <div class="story-block" id="historia-block-3">
+            <div class="story-text">
+                <h2 id="hist-tit3-disp">Familia y Comunidad</h2>
+                <p id="hist-txt3-disp">Somos mucho más que un restaurante: somos el punto de encuentro de familias, amigos y vecinos de Villa Alemana y toda la Quinta Región. Cada visita es una celebración de lo nuestro, de lo chileno, de lo hecho con amor en casa. Gracias a nuestros clientes de siempre, seguimos creciendo con orgullo.</p>
+            </div>
+            <img src="" alt="Ambiente familiar" class="story-img" id="story-img-3" style="display:none;">
+        </div>
     </section>
 
     <section class="valores-section">
@@ -195,7 +208,7 @@
             <div class="contact-box">
                 <h2>¡Ven a visitarnos!</h2>
                 <p><i class="fa-solid fa-location-dot"></i> Santa Ana 98, Villa Alemana.</p>
-                <p><i class="fa-regular fa-clock"></i> Lunes a Domingo, 12:30 – 17:00 hrs</p>
+                <p><i class="fa-regular fa-clock"></i> Lunes a Domingo, 12:00 – 18:00 hrs</p>
                 <p><i class="fa-brands fa-whatsapp"></i> <a href="https://wa.me/56971482268">+569 7148 2268</a></p>
                 <p><i class="fa-solid fa-phone"></i> <a href="tel:322220409">32 322 0409</a></p>
                 <p style="margin-top: 15px;">¿Nos visitas? Etiquétanos en tus fotos y sé parte de la familia de La Tetera de Greda.</p>
@@ -251,17 +264,28 @@
                 const hSnap = await getDoc(doc(db, 'configuracion', 'historia'));
                 if (hSnap.exists()) {
                     const d = hSnap.data();
-                    if(d.habilitado === false) {
-                        document.getElementById('historia-section').style.display = 'none';
-                    } else {
-                        for(let i=1; i<=3; i++) {
-                            if(d[`b${i}`]) {
-                                if(d[`b${i}`].tit) document.getElementById(`hist-tit${i}-disp`).textContent = d[`b${i}`].tit;
-                                if(d[`b${i}`].txt) document.getElementById(`hist-txt${i}-disp`).textContent = d[`b${i}`].txt;
-                                if(d[`b${i}`].img) document.getElementById(`story-img-${i}`).src = d[`b${i}`].img;
-                            }
+                    // La seccion historia-section solo se oculta si no hay bloques habilitados
+                    let alguno = false;
+                    for(let i=1; i<=3; i++) {
+                        const b = d[`b${i}`];
+                        if(!b) continue;
+                        // Bloque individual habilitado/deshabilitado
+                        const bloqueEl = document.getElementById(`historia-block-${i}`);
+                        if(b.habilitado === false) {
+                            if(bloqueEl) bloqueEl.style.display = 'none';
+                        } else {
+                            alguno = true;
+                            if(bloqueEl) bloqueEl.style.display = '';
+                            if(b.tit) document.getElementById(`hist-tit${i}-disp`).textContent = b.tit;
+                            if(b.txt) document.getElementById(`hist-txt${i}-disp`).textContent = b.txt;
+                            const imgEl = document.getElementById(`story-img-${i}`);
+                            if(b.img) { imgEl.src = b.img; imgEl.style.display = ''; }
+                            else { imgEl.style.display = 'none'; }
                         }
                     }
+                    if(!alguno) document.getElementById('historia-section').style.display = 'none';
+                } else {
+                    document.getElementById('historia-section').style.display = 'none';
                 }
             } catch(e) {}
 
@@ -279,11 +303,8 @@
                             cont.innerHTML += `<div class="gallery-item"><img src="${d.data().url}" alt="Nuestro Espacio"></div>`;
                         });
                     } else {
-                        cont.innerHTML = `
-                            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=500" alt="Ambiente"></div>
-                            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=500" alt="Comida"></div>
-                            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1544025162-811114215b36?q=80&w=500" alt="Detalles"></div>
-                        `;
+                        // Sin imágenes en Firestore: ocultar sección entera
+                        document.getElementById('galeria-section').style.display = 'none';
                     }
                 }
             } catch(e) {}
