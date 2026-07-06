@@ -39,6 +39,7 @@ function scrollToTop() {
 }
 
 function initAdmin() {
+    cargarDashboard();
     cargarPlatos();
     cargarBebidas();
     cargarConfiguracionGeneral();
@@ -46,6 +47,23 @@ function initAdmin() {
     cargarMenuDiaImgs();
     cargarHistoria();
     cargarGaleria();
+}
+
+/* Dashboard stats */
+async function cargarDashboard() {
+    try {
+        const [platosSnap, bebidasSnap, galeriaSnap] = await Promise.all([
+            getDocs(collection(db, 'platos')),
+            getDocs(collection(db, 'bebidas')),
+            getDocs(collection(db, 'galeria'))
+        ]);
+        const dp = document.getElementById('dash-platos');
+        const db2 = document.getElementById('dash-bebidas');
+        const di = document.getElementById('dash-imgs');
+        if (dp) dp.textContent = platosSnap.size;
+        if (db2) db2.textContent = bebidasSnap.size;
+        if (di) di.textContent = galeriaSnap.size;
+    } catch(e) { console.warn('dashboard error', e); }
 }
 
 // Nav Tabs
@@ -59,12 +77,33 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     });
 });
 
+// Navegar a tab por nombre (usado en dashboard)
+window.irA = function(page) {
+    const btn = document.querySelector(`[data-page="${page}"]`);
+    if (btn) btn.click();
+};
+
 // Checkbox Oferta Platos
 document.getElementById('plato-oferta-cb').addEventListener('change', (e) => {
     const fields = document.getElementById('plato-oferta-fields');
     if(e.target.checked) fields.classList.remove('hidden');
     else fields.classList.add('hidden');
 });
+
+/* Formateador de precio: convierte "13000" -> "$13.000" */
+function formatPrecio(raw) {
+    const num = parseInt(String(raw).replace(/\D/g, ''), 10);
+    if (isNaN(num)) return raw;
+    return '$' + num.toLocaleString('es-CL');
+}
+function attachPriceFormatter(inputId) {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    el.addEventListener('blur', () => { el.value = formatPrecio(el.value); });
+}
+attachPriceFormatter('plato-precio');
+attachPriceFormatter('plato-oferta-precio');
+attachPriceFormatter('bebida-precio');
 
 /* ============================
    CROPPER MODAL (Universal)
@@ -296,25 +335,30 @@ platoForm.addEventListener('submit', async (e) => {
     btnSubmit.disabled = true; btnSubmit.textContent = "Guardando...";
 
     const id = document.getElementById('plato-id').value;
+    // Recoger etiquetas seleccionadas
+    const etiquetas = [...document.querySelectorAll('.plato-etiqueta:checked')].map(cb => cb.value);
     const data = {
         nombre: document.getElementById('plato-nombre').value,
-        precio: document.getElementById('plato-precio').value,
+        precio: formatPrecio(document.getElementById('plato-precio').value),
         descripcion: document.getElementById('plato-desc').value,
         categoria: document.getElementById('plato-categoria').value,
         imagenBase64: estadoPlatoImg.base64,
         imagenPos: null,
         oferta: document.getElementById('plato-oferta-cb').checked,
         ofertaEtiqueta: document.getElementById('plato-oferta-etiqueta').value,
-        ofertaPrecio: document.getElementById('plato-oferta-precio').value
+        ofertaPrecio: formatPrecio(document.getElementById('plato-oferta-precio').value),
+        disponible: document.getElementById('plato-disponible').checked,
+        etiquetas: etiquetas
     };
 
     try {
         if (id) { await updateDoc(doc(db, 'platos', id), data); showStatus('plato-status', 'Actualizado correctamente'); }
-        else { data.orden = 999; await addDoc(collection(db, 'platos'), data); showStatus('plato-status', 'Plato creado'); }
+        else { data.orden = Date.now(); await addDoc(collection(db, 'platos'), data); showStatus('plato-status', 'Plato creado'); }
         limpiarPlatoForm();
         cargarPlatos();
+        cargarDashboard();
     } catch (e) { showStatus('plato-status', 'Error al guardar', true); }
-    btnSubmit.disabled = false; btnSubmit.innerHTML = `Guardar Plato`;
+    btnSubmit.disabled = false; btnSubmit.innerHTML = `Guardar`;
 });
 
 function limpiarPlatoForm() {
@@ -324,6 +368,8 @@ function limpiarPlatoForm() {
     document.getElementById('plato-preview-box').style.display = 'none';
     document.getElementById('plato-oferta-cb').checked = false;
     document.getElementById('plato-oferta-fields').classList.add('hidden');
+    document.getElementById('plato-disponible').checked = true;
+    document.querySelectorAll('.plato-etiqueta').forEach(cb => cb.checked = false);
 }
 document.getElementById('plato-cancel').addEventListener('click', limpiarPlatoForm);
 document.getElementById('btn-eliminar-foto-plato').addEventListener('click', () => {
@@ -331,32 +377,59 @@ document.getElementById('btn-eliminar-foto-plato').addEventListener('click', () 
     estadoPlatoImg.base64 = null;
 });
 
+// Lista de todos los platos para filtro
+let _todosLosPlatos = [];
+
 async function cargarPlatos() {
     const lista = document.getElementById('platos-lista');
     lista.innerHTML = 'Cargando...';
     const snap = await getDocs(query(collection(db, 'platos'), orderBy('orden')));
-    lista.innerHTML = '';
+    _todosLosPlatos = [];
     snap.forEach(docSnap => {
-        const d = docSnap.data();
+        _todosLosPlatos.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    renderListaPlatos(_todosLosPlatos);
+}
+
+function renderListaPlatos(platos) {
+    const lista = document.getElementById('platos-lista');
+    lista.innerHTML = '';
+    if (!platos.length) { lista.innerHTML = '<p style="color:#999; text-align:center;">No hay platos.</p>'; return; }
+    platos.forEach((d, idx) => {
         const div = document.createElement('div');
         div.className = 'item-row';
         const tag = d.oferta ? `<span class="tag tag-oferta"><i class="fa-solid fa-tag"></i> Oferta</span>` : '';
-        // Thumbnail más grande para que se vea bien
+        const disponibleTag = d.disponible === false
+            ? `<span class="tag" style="background:#fde8e8;color:#c0392b;">Agotado</span>`
+            : `<span class="tag" style="background:#eaf7ea;color:#27ae60;">Disponible</span>`;
         const imgHtml = d.imagenBase64
             ? `<img class="item-row-img-thumb" src="${d.imagenBase64}" alt="${d.nombre}">`
-            : `<div class="item-row-img-thumb item-row-img-placeholder"><i class="fa-solid fa-image"></i></div>`;
+            : `<div class="item-row-img-placeholder"><i class="fa-solid fa-image"></i></div>`;
         div.innerHTML = `
             ${imgHtml}
-            <div class="item-row-info"><strong>${d.nombre}</strong> ${tag}<p>${d.precio} - ${d.categoria}</p></div>
+            <div class="item-row-info"><strong>${d.nombre}</strong> ${tag} ${disponibleTag}<p>${d.precio} &mdash; ${d.categoria}</p></div>
             <div class="item-row-actions">
-                <button class="btn-edit-sm" onclick="editarPlato('${docSnap.id}')"><i class="fa-solid fa-pen"></i></button>
-                <button class="btn-danger" onclick="borrarPlato('${docSnap.id}')"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn-edit-sm" title="Subir" onclick="reordenarPlato('${d.id}', ${idx}, -1)"><i class="fa-solid fa-arrow-up"></i></button>
+                <button class="btn-edit-sm" title="Bajar" onclick="reordenarPlato('${d.id}', ${idx}, 1)"><i class="fa-solid fa-arrow-down"></i></button>
+                <button class="btn-edit-sm" onclick="editarPlato('${d.id}')"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-danger" onclick="borrarPlato('${d.id}')"><i class="fa-solid fa-trash"></i></button>
             </div>`;
         lista.appendChild(div);
     });
 }
 
-window.borrarPlato = async (id) => { if (confirm('¿Eliminar este plato?')) { await deleteDoc(doc(db, 'platos', id)); cargarPlatos(); } };
+// Filtro de búsqueda y categoría
+window.filtrarListaPlatos = function() {
+    const q = (document.getElementById('platos-search')?.value || '').toLowerCase();
+    const cat = document.getElementById('platos-filtro-cat')?.value || '';
+    const filtered = _todosLosPlatos.filter(p =>
+        (!q || p.nombre.toLowerCase().includes(q)) &&
+        (!cat || p.categoria === cat)
+    );
+    renderListaPlatos(filtered);
+};
+
+window.borrarPlato = async (id) => { if (confirm('¿Eliminar este plato?')) { await deleteDoc(doc(db, 'platos', id)); cargarPlatos(); cargarDashboard(); } };
 
 window.editarPlato = async (id) => {
     const docSnap = await getDoc(doc(db, 'platos', id));
@@ -371,6 +444,11 @@ window.editarPlato = async (id) => {
         document.getElementById('plato-oferta-etiqueta').value = d.ofertaEtiqueta || '';
         document.getElementById('plato-oferta-precio').value = d.ofertaPrecio || '';
         document.getElementById('plato-oferta-fields').classList.toggle('hidden', !d.oferta);
+        document.getElementById('plato-disponible').checked = d.disponible !== false;
+        // Etiquetas
+        document.querySelectorAll('.plato-etiqueta').forEach(cb => {
+            cb.checked = (d.etiquetas || []).includes(cb.value);
+        });
 
         if (d.imagenBase64) {
             estadoPlatoImg.base64 = d.imagenBase64;
@@ -384,49 +462,97 @@ window.editarPlato = async (id) => {
     }
 };
 
+/* Reordenar platos: intercambia el campo orden con el plato adyacente */
+window.reordenarPlato = async (id, idx, dir) => {
+    const arr = _todosLosPlatos;
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= arr.length) return;
+    const a = arr[idx], b = arr[newIdx];
+    const ordenA = a.orden ?? idx;
+    const ordenB = b.orden ?? newIdx;
+    await Promise.all([
+        updateDoc(doc(db, 'platos', a.id), { orden: ordenB }),
+        updateDoc(doc(db, 'platos', b.id), { orden: ordenA })
+    ]);
+    cargarPlatos();
+};
+
 /* ============================
    BEBIDAS
 ============================ */
 const bebidaForm = document.getElementById('bebida-form');
+let _todasLasBebidas = [];
+
 bebidaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btnSubmit = bebidaForm.querySelector('button[type="submit"]');
     btnSubmit.disabled = true; btnSubmit.textContent = "Guardando...";
     const id = document.getElementById('bebida-id').value;
+    const etiquetas = [...document.querySelectorAll('.bebida-etiqueta:checked')].map(cb => cb.value);
     const data = {
         nombre: document.getElementById('bebida-nombre').value,
-        precio: document.getElementById('bebida-precio').value,
+        precio: formatPrecio(document.getElementById('bebida-precio').value),
         subcategoria: document.getElementById('bebida-subcategoria').value,
-        categoria: 'bebestibles'
+        categoria: 'bebestibles',
+        disponible: document.getElementById('bebida-disponible').checked,
+        etiquetas: etiquetas
     };
     try {
         if (id) { await updateDoc(doc(db, 'bebidas', id), data); showStatus('bebida-status', 'Actualizado correctamente'); }
-        else { await addDoc(collection(db, 'bebidas'), data); showStatus('bebida-status', 'Bebida creada'); }
-        bebidaForm.reset(); document.getElementById('bebida-id').value = ''; cargarBebidas();
+        else { data.orden = Date.now(); await addDoc(collection(db, 'bebidas'), data); showStatus('bebida-status', 'Bebida creada'); }
+        bebidaForm.reset();
+        document.getElementById('bebida-id').value = '';
+        document.getElementById('bebida-disponible').checked = true;
+        document.querySelectorAll('.bebida-etiqueta').forEach(cb => cb.checked = false);
+        cargarBebidas();
+        cargarDashboard();
     } catch (e) { showStatus('bebida-status', 'Error al guardar', true); }
-    btnSubmit.disabled = false; btnSubmit.innerHTML = `Guardar Bebida`;
+    btnSubmit.disabled = false; btnSubmit.innerHTML = `Guardar`;
 });
-document.getElementById('bebida-cancel').addEventListener('click', () => { bebidaForm.reset(); document.getElementById('bebida-id').value = ''; });
+document.getElementById('bebida-cancel').addEventListener('click', () => {
+    bebidaForm.reset();
+    document.getElementById('bebida-id').value = '';
+    document.getElementById('bebida-disponible').checked = true;
+    document.querySelectorAll('.bebida-etiqueta').forEach(cb => cb.checked = false);
+});
 
 async function cargarBebidas() {
     const lista = document.getElementById('bebidas-lista');
     lista.innerHTML = 'Cargando...';
-    const snap = await getDocs(collection(db, 'bebidas'));
-    lista.innerHTML = '';
+    const snap = await getDocs(query(collection(db, 'bebidas'), orderBy('orden')));
+    _todasLasBebidas = [];
     snap.forEach(docSnap => {
-        const d = docSnap.data();
+        _todasLasBebidas.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    renderListaBebidas(_todasLasBebidas);
+}
+
+function renderListaBebidas(bebidas) {
+    const lista = document.getElementById('bebidas-lista');
+    lista.innerHTML = '';
+    if (!bebidas.length) { lista.innerHTML = '<p style="color:#999; text-align:center;">No hay bebidas.</p>'; return; }
+    bebidas.forEach(d => {
         const div = document.createElement('div');
         div.className = 'item-row';
+        const dispTag = d.disponible === false
+            ? `<span class="tag" style="background:#fde8e8;color:#c0392b;">Agotada</span>`
+            : '';
         div.innerHTML = `
-            <div class="item-row-info"><strong>${d.nombre}</strong><p>${d.precio} - ${d.subcategoria}</p></div>
+            <div class="item-row-info"><strong>${d.nombre}</strong> ${dispTag}<p>${d.precio} - ${d.subcategoria}</p></div>
             <div class="item-row-actions">
-                <button class="btn-edit-sm" onclick="editarBebida('${docSnap.id}')"><i class="fa-solid fa-pen"></i></button>
-                <button class="btn-danger" onclick="borrarBebida('${docSnap.id}')"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn-edit-sm" onclick="editarBebida('${d.id}')"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-danger" onclick="borrarBebida('${d.id}')"><i class="fa-solid fa-trash"></i></button>
             </div>`;
         lista.appendChild(div);
     });
 }
-window.borrarBebida = async (id) => { if (confirm('¿Eliminar?')) { await deleteDoc(doc(db, 'bebidas', id)); cargarBebidas(); } };
+
+window.filtrarListaBebidas = function() {
+    const q = (document.getElementById('bebidas-search')?.value || '').toLowerCase();
+    const filtered = _todasLasBebidas.filter(b => !q || b.nombre.toLowerCase().includes(q));
+    renderListaBebidas(filtered);
+};
+window.borrarBebida = async (id) => { if (confirm('¿Eliminar?')) { await deleteDoc(doc(db, 'bebidas', id)); cargarBebidas(); cargarDashboard(); } };
 window.editarBebida = async (id) => {
     const docSnap = await getDoc(doc(db, 'bebidas', id));
     if (docSnap.exists()) {
@@ -435,6 +561,10 @@ window.editarBebida = async (id) => {
         document.getElementById('bebida-nombre').value = d.nombre;
         document.getElementById('bebida-precio').value = d.precio;
         document.getElementById('bebida-subcategoria').value = d.subcategoria;
+        document.getElementById('bebida-disponible').checked = d.disponible !== false;
+        document.querySelectorAll('.bebida-etiqueta').forEach(cb => {
+            cb.checked = (d.etiquetas || []).includes(cb.value);
+        });
         scrollToTop();
     }
 };
@@ -659,6 +789,16 @@ document.getElementById('galeria-habilitar').addEventListener('change', async (e
 
 window.subirMultiGaleria = async (input) => {
     if (input.files.length === 0) return;
+
+    // Verificar límite de 8 imágenes
+    const snapActual = await getDocs(collection(db, 'galeria'));
+    const actuales = snapActual.size;
+    if (actuales >= 8) {
+        showStatus('galeria-status', 'Límite de 8 imágenes alcanzado. Elimina alguna antes de agregar.', true);
+        input.value = '';
+        return;
+    }
+
     if (input.files.length === 1) {
         showStatus('galeria-status', 'Procesando imagen...');
         const b64_temp = await compressImage(input.files[0]);
@@ -669,16 +809,24 @@ window.subirMultiGaleria = async (input) => {
             await addDoc(collection(db, 'galeria'), { url: b64, ts: Date.now() });
             showStatus('galeria-status', 'Imagen agregada');
             cargarGaleria();
+            cargarDashboard();
         } else { showStatus('galeria-status', ''); }
     } else {
-        showStatus('galeria-status', 'Subiendo imágenes...');
-        for (let file of input.files) {
+        const disponibles = 8 - actuales;
+        const archivos = [...input.files].slice(0, disponibles);
+        if (archivos.length < input.files.length) {
+            showStatus('galeria-status', `Solo se agregarán ${disponibles} imágenes (límite 8).`);
+        } else {
+            showStatus('galeria-status', 'Subiendo imágenes...');
+        }
+        for (let file of archivos) {
             const b64 = await compressImage(file);
             await addDoc(collection(db, 'galeria'), { url: b64, ts: Date.now() });
         }
         input.value = '';
         showStatus('galeria-status', 'Imágenes agregadas');
         cargarGaleria();
+        cargarDashboard();
     }
 };
 
