@@ -58,7 +58,10 @@
         .btn-primary { background: var(--greda-orange); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
         .btn-primary:hover { background: #c9751e; }
         .btn-secondary { background: transparent; color: var(--greda-brown); border: 1.5px solid var(--greda-brown); padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-left: 8px; transition: 0.2s; }
-        .btn-secondary:hover { background: var(--greda-brown); color: white; }
+        .btn-secondary:hover, .btn-secondary:focus { background: var(--greda-brown); color: white; }
+        .btn-secondary:active { background: var(--greda-brown); color: white; }
+        /* Reset del estado activo después del click */
+        .btn-secondary:not(:hover):not(:focus) { background: transparent; color: var(--greda-brown); }
         .btn-danger { background: var(--greda-red); color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
         .btn-edit-sm { background: #eee; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
         .status-msg { margin-top: 8px; font-size: 0.85rem; font-weight: 600; min-height: 20px; display: flex; align-items: center; gap: 6px; }
@@ -140,8 +143,8 @@
 
 <div id="panel-root" class="hidden" style="display:flex; flex-direction:column; height:100vh;">
     <div class="topbar">
-        <div class="topbar-title"><img src="logo tetera.png" alt="Logo"> Administración</div>
-        <button id="btn-logout">Cerrar sesión</button>
+        <div class="topbar-title"><img src="logo tetera.png" alt="Logo"> Administración Tetera de Greda</div>
+        <button id="btn-logout" style="margin-right:44px;">Cerrar sesión</button>
     </div>
 
     <div class="main-layout">
@@ -149,7 +152,7 @@
             <div class="sidebar-label">Resumen</div>
             <button class="nav-btn" data-page="inicio"><i class="fa-solid fa-house"></i> Inicio</button>
             <div class="sidebar-label" style="margin-top:12px;">Menú</div>
-            <button class="nav-btn active" data-page="platos"><i class="fa-solid fa-utensils"></i> Platos</button>
+            <button class="nav-btn" data-page="platos"><i class="fa-solid fa-utensils"></i> Platos</button>
             <button class="nav-btn" data-page="bebidas"><i class="fa-solid fa-wine-glass"></i> Bebidas</button>
             <div class="sidebar-label" style="margin-top:12px;">Contenido</div>
             <button class="nav-btn" data-page="portadas"><i class="fa-solid fa-image"></i> Portadas</button>
@@ -160,35 +163,30 @@
         <div class="content">
 
             <!-- INICIO / DASHBOARD -->
-            <div class="page" id="page-inicio">
+            <div class="page active" id="page-inicio">
                 <div class="card" style="text-align:center; padding: 30px 20px;">
                     <div style="font-size:2.5rem; margin-bottom:12px;">&#127869;</div>
-                    <h2 style="color:var(--greda-brown); margin-bottom:6px;">Bienvenido al Panel</h2>
-                    <p style="color:#888; font-size:0.9rem; margin-bottom:24px;">La Tetera de Greda — Administración</p>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:12px; max-width:500px; margin:0 auto 24px;">
-                        <div style="background:#fdf8f5; border-radius:12px; padding:20px; border-top:4px solid var(--greda-orange);">
+                    <h2 style="color:var(--greda-brown); margin-bottom:6px; text-align:center;">Bienvenido al Panel</h2>
+                    <p style="color:#888; font-size:0.9rem; margin-bottom:24px; text-align:center;">La Tetera de Greda &mdash; Administración</p>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:12px; max-width:480px; margin:0 auto;">
+                        <div style="background:#fdf8f5; border-radius:12px; padding:20px; border-top:4px solid var(--greda-orange); text-align:center;">
                             <div id="dash-platos" style="font-size:2rem; font-weight:700; color:var(--greda-brown);">&#8230;</div>
                             <div style="font-size:0.8rem; color:#888; margin-top:4px;">Platos</div>
                         </div>
-                        <div style="background:#fdf8f5; border-radius:12px; padding:20px; border-top:4px solid var(--greda-orange);">
+                        <div style="background:#fdf8f5; border-radius:12px; padding:20px; border-top:4px solid var(--greda-orange); text-align:center;">
                             <div id="dash-bebidas" style="font-size:2rem; font-weight:700; color:var(--greda-brown);">&#8230;</div>
                             <div style="font-size:0.8rem; color:#888; margin-top:4px;">Bebidas</div>
                         </div>
-                        <div style="background:#fdf8f5; border-radius:12px; padding:20px; border-top:4px solid var(--greda-orange);">
+                        <div style="background:#fdf8f5; border-radius:12px; padding:20px; border-top:4px solid var(--greda-orange); text-align:center;">
                             <div id="dash-imgs" style="font-size:2rem; font-weight:700; color:var(--greda-brown);">&#8230;</div>
                             <div style="font-size:0.8rem; color:#888; margin-top:4px;">Fotos Galería</div>
                         </div>
-                    </div>
-                    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-                        <button class="btn-primary" onclick="irA('platos')"><i class="fa-solid fa-utensils"></i> Ir a Platos</button>
-                        <button class="btn-secondary" onclick="irA('bebidas')"><i class="fa-solid fa-wine-glass"></i> Ir a Bebidas</button>
-                        <button class="btn-secondary" onclick="irA('portadas')"><i class="fa-solid fa-image"></i> Portadas</button>
                     </div>
                 </div>
             </div>
 
             <!-- PLATOS -->
-            <div class="page active" id="page-platos">
+            <div class="page" id="page-platos">
                 <div class="card">
                     <h2><i class="fa-solid fa-utensils"></i> Formulario de Plato</h2>
                     <form id="plato-form">
@@ -266,19 +264,9 @@
 
                 <div class="card">
                     <h2><i class="fa-solid fa-list"></i> Platos actuales</h2>
-                    <!-- Búsqueda y filtro -->
-                    <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
-                        <input type="text" id="platos-search" placeholder="Buscar por nombre..." style="flex:1; min-width:140px;" oninput="filtrarListaPlatos()">
-                        <select id="platos-filtro-cat" onchange="filtrarListaPlatos()" style="flex:1; min-width:120px;">
-                            <option value="">Todas las categorías</option>
-                            <option value="carnes">Carnes y a lo Pobre</option>
-                            <option value="mar">Del Mar</option>
-                            <option value="fondos">Platos Tradicionales</option>
-                            <option value="entradas">Entradas y Ensaladas</option>
-                            <option value="guarniciones">Guarniciones</option>
-                            <option value="ninos">Menú Niños</option>
-                            <option value="postres">Postres</option>
-                        </select>
+                    <!-- Solo búsqueda por texto; sin filtro de categoría para que el reordenamiento funcione correctamente -->
+                    <div style="margin-bottom:12px;">
+                        <input type="text" id="platos-search" placeholder="Buscar plato por nombre..." style="width:100%;" oninput="filtrarListaPlatos()">
                     </div>
                     <div id="platos-lista">Cargando...</div>
                 </div>
@@ -322,7 +310,7 @@
                                     <input type="checkbox" class="bebida-etiqueta" value="⭐ Más vendida"> ⭐ Más vendida
                                 </label>
                                 <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-size:0.9rem;">
-                                    <input type="checkbox" class="bebida-etiqueta" value="🌿 Sin alcohol"> 🌿 Sin alcohol
+                                    <input type="checkbox" class="bebida-etiqueta" value="🥤 Sin alcohol"> 🥤 Sin alcohol
                                 </label>
                             </div>
                         </div>

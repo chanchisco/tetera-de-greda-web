@@ -30,10 +30,8 @@
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             text-align: center; color: white; padding: 40px 20px 0;
-            opacity: 0;
-            transition: opacity 0.5s ease;
+            /* Visible de inmediato; imagen Firestore se aplica cuando carga */
         }
-        .hero.loaded { opacity: 1; }
         .hero-logo { width: 220px; margin-bottom: 18px; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.6)); }
         .hero h1 { color: white; font-size: 3.4rem; margin-bottom: 8px; text-shadow: 0 2px 10px rgba(0,0,0,0.4); }
         .hero-sub { font-size: 1.2rem; font-style: italic; opacity: 0.9; }
@@ -146,15 +144,17 @@
         .whatsapp-float { position: fixed; width: 60px; height: 60px; bottom: 30px; right: 30px; background-color: #25d366; color: #FFF; border-radius: 50%; text-align: center; font-size: 32px; box-shadow: 2px 2px 10px rgba(0,0,0,0.25); z-index: 100; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: transform 0.3s; }
         .whatsapp-float:hover { transform: scale(1.1); }
 
-        /* Candado Admin */
+        /* Candado Admin (en footer, muy discreto) */
+        .footer-inner { display: flex; align-items: center; justify-content: center; position: relative; }
         .admin-lock-btn {
-            position: fixed; bottom: 30px; left: 30px; z-index: 100;
-            background: rgba(64, 27, 15, 0.55); color: rgba(255,255,255,0.4);
-            border: none; border-radius: 50%; width: 38px; height: 38px;
-            font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(4px); transition: 0.3s;
+            position: absolute; left: 0;
+            background: none; border: none; cursor: pointer;
+            color: rgba(180,160,140,0.25); font-size: 0.7rem;
+            padding: 2px 6px;
+            transition: color 0.3s; font-family: inherit;
+            display: flex; align-items: center; gap: 4px;
         }
-        .admin-lock-btn:hover { background: rgba(64,27,15,0.8); color: white; }
+        .admin-lock-btn:hover { color: rgba(180,160,140,0.7); }
 
         /* Modal Admin */
         .admin-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 500; align-items: center; justify-content: center; padding: 16px; }
@@ -168,6 +168,10 @@
             .hero h1 { font-size: 2.3rem; }
             .hero-logo { width: 160px; }
             .hero-nav a { padding: 14px 16px; font-size: 0.82rem; letter-spacing: 1px; }
+            /* Fix barra inferior móvil */
+            body { padding-bottom: env(safe-area-inset-bottom); }
+            .sticky-nav-links { flex: 1; justify-content: space-around; }
+            .sticky-nav-links a { flex: 1; text-align: center; padding: 14px 8px; font-size: 0.68rem; letter-spacing: 0.5px; }
         }
     </style>
 </head>
@@ -191,7 +195,7 @@
         <!-- BUSCADOR -->
         <div class="search-bar-wrap">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="carta-search" placeholder="Buscar plato o ingrediente..." oninput="onSearch(this.value)" autocomplete="off">
+            <input type="text" id="carta-search" placeholder="Buscar plato o ingrediente..." oninput="onSearch(this.value)" autocomplete="off" enterkeyhint="search">
             <button id="btn-clear-search" onclick="clearSearch()" title="Limpiar"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
@@ -236,17 +240,17 @@
     </section>
 
     <footer>
-        <p>© 2026 Restobar La Tetera de Greda. Todos los derechos reservados.</p>
+        <div class="footer-inner">
+            <p>© 2026 Restobar La Tetera de Greda. Todos los derechos reservados.</p>
+            <button class="admin-lock-btn" onclick="abrirAdmin()" title="Administración">
+                <i class="fa-solid fa-lock"></i>
+            </button>
+        </div>
     </footer>
 
     <a href="https://wa.me/56971482268?text=Hola,%20vengo%20desde%20su%20página%20web%20y%20me%20gustaría%20hacer%20una%20consulta." class="whatsapp-float" target="_blank">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
-
-    <!-- Candado Admin esquina inferior izquierda -->
-    <button class="admin-lock-btn" onclick="abrirAdmin()" title="Administración">
-        <i class="fa-solid fa-lock"></i>
-    </button>
 
     <!-- Modal Admin -->
     <div id="admin-modal-overlay" class="admin-modal-overlay">
@@ -384,9 +388,13 @@
             btn.classList.add('active');
             categoriaActiva = category;
 
+            // Al seleccionar categoría, limpiar el buscador para mayor claridad
+            const searchInput = document.getElementById('carta-search');
+            searchInput.value = '';
+            document.getElementById('btn-clear-search').style.display = 'none';
+
             const grid = document.getElementById('menu-grid');
             const drinks = document.getElementById('drinks-section');
-            const searchVal = document.getElementById('carta-search').value.toLowerCase().trim();
 
             if (category === 'bebestibles') {
                 grid.style.display = 'none';
@@ -394,7 +402,7 @@
             } else {
                 grid.style.display = 'grid';
                 drinks.style.display = 'none';
-                aplicarFiltros(category, searchVal);
+                aplicarFiltros(category, '');
             }
         };
 
@@ -442,6 +450,11 @@
         window.abrirAdmin = function() { adminIframe.src = 'admin.html'; adminOverlay.classList.add('active'); };
         adminClose.addEventListener('click', () => { adminOverlay.classList.remove('active'); adminIframe.src = ''; });
         adminOverlay.addEventListener('click', (e) => { if (e.target === adminOverlay) { adminOverlay.classList.remove('active'); adminIframe.src = ''; } });
+
+        // Enter en celular cierra el teclado
+        document.getElementById('carta-search').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.target.blur(); }
+        });
     </script>
 </body>
 </html>

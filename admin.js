@@ -418,13 +418,11 @@ function renderListaPlatos(platos) {
     });
 }
 
-// Filtro de búsqueda y categoría
+// Filtro solo por texto (sin categoría para no interferir con el reordenamiento)
 window.filtrarListaPlatos = function() {
     const q = (document.getElementById('platos-search')?.value || '').toLowerCase();
-    const cat = document.getElementById('platos-filtro-cat')?.value || '';
     const filtered = _todosLosPlatos.filter(p =>
-        (!q || p.nombre.toLowerCase().includes(q)) &&
-        (!cat || p.categoria === cat)
+        !q || p.nombre.toLowerCase().includes(q)
     );
     renderListaPlatos(filtered);
 };
