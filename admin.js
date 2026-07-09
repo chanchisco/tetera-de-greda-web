@@ -377,57 +377,194 @@ document.getElementById('btn-eliminar-foto-plato').addEventListener('click', () 
     estadoPlatoImg.base64 = null;
 });
 
-// Lista de todos los platos para filtro
+// Lista de todos los platos y estado de tabs/sortable
 let _todosLosPlatos = [];
+let _categoriaActivaAdmin = 'todos';
+let _sortableInstance = null;
+let _busquedaActiva = '';
+
+const CATEGORIAS_ADMIN = [
+    { val: 'todos',        label: '📋 Todos' },
+    { val: 'carnes',       label: '🥩 Carnes' },
+    { val: 'mar',          label: '🐟 Del Mar' },
+    { val: 'fondos',       label: '🍲 Tradicionales' },
+    { val: 'entradas',     label: '🥗 Entradas' },
+    { val: 'guarniciones', label: '🍟 Guarniciones' },
+    { val: 'ninos',        label: '🧒 Niños' },
+    { val: 'postres',      label: '🍮 Postres' },
+];
+
+function renderCategoryTabs() {
+    const cont = document.getElementById('platos-cat-tabs');
+    if (!cont) return;
+    cont.innerHTML = '';
+    CATEGORIAS_ADMIN.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'cat-tab-btn' + (_categoriaActivaAdmin === cat.val ? ' active' : '');
+        btn.textContent = cat.label;
+        btn.onclick = () => {
+            _categoriaActivaAdmin = cat.val;
+            _busquedaActiva = '';
+            const searchEl = document.getElementById('platos-search');
+            if (searchEl) searchEl.value = '';
+            renderCategoryTabs();
+            renderListaPlatos(platosVisibles());
+        };
+        cont.appendChild(btn);
+    });
+}
+
+function platosVisibles() {
+    let arr = _categoriaActivaAdmin === 'todos'
+        ? _todosLosPlatos
+        : _todosLosPlatos.filter(p => p.categoria === _categoriaActivaAdmin);
+    if (_busquedaActiva) {
+        arr = arr.filter(p => p.nombre.toLowerCase().includes(_busquedaActiva));
+    }
+    return arr;
+}
 
 async function cargarPlatos() {
     const lista = document.getElementById('platos-lista');
-    lista.innerHTML = 'Cargando...';
-    const snap = await getDocs(query(collection(db, 'platos'), orderBy('orden')));
-    _todosLosPlatos = [];
-    snap.forEach(docSnap => {
-        _todosLosPlatos.push({ id: docSnap.id, ...docSnap.data() });
-    });
-    renderListaPlatos(_todosLosPlatos);
+    lista.innerHTML = '<p style="color:#aaa;">Cargando...</p>';
+    try {
+        const snap = await getDocs(query(collection(db, 'platos'), orderBy('orden')));
+        _todosLosPlatos = [];
+        snap.forEach(docSnap => {
+            _todosLosPlatos.push({ id: docSnap.id, ...docSnap.data() });
+        });
+    } catch(e) {
+        // Si no hay índice de 'orden', cargar sin ordenar
+        const snap = await getDocs(collection(db, 'platos'));
+        _todosLosPlatos = [];
+        snap.forEach(docSnap => {
+            _todosLosPlatos.push({ id: docSnap.id, ...docSnap.data() });
+        });
+    }
+    renderCategoryTabs();
+    renderListaPlatos(platosVisibles());
 }
 
 function renderListaPlatos(platos) {
     const lista = document.getElementById('platos-lista');
     lista.innerHTML = '';
-    if (!platos.length) { lista.innerHTML = '<p style="color:#999; text-align:center;">No hay platos.</p>'; return; }
-    platos.forEach((d, idx) => {
+
+    if (!platos.length) {
+        lista.innerHTML = '<p style="color:#999; text-align:center; padding:20px;">No hay platos en esta categoría.</p>';
+        if (_sortableInstance) { _sortableInstance.destroy(); _sortableInstance = null; }
+        return;
+    }
+
+    platos.forEach(d => {
         const div = document.createElement('div');
         div.className = 'item-row';
+        div.dataset.id = d.id;
         const tag = d.oferta ? `<span class="tag tag-oferta"><i class="fa-solid fa-tag"></i> Oferta</span>` : '';
-        const disponibleTag = d.disponible === false
-            ? `<span class="tag" style="background:#fde8e8;color:#c0392b;">Agotado</span>`
-            : `<span class="tag" style="background:#eaf7ea;color:#27ae60;">Disponible</span>`;
+        const dispTag = d.disponible === false
+            ? `<span class="tag" style="background:#fde8e8;color:#c0392b;font-size:0.72rem;">Agotado</span>`
+            : `<span class="tag" style="background:#eaf7ea;color:#27ae60;font-size:0.72rem;">✓ Disp.</span>`;
         const imgHtml = d.imagenBase64
             ? `<img class="item-row-img-thumb" src="${d.imagenBase64}" alt="${d.nombre}">`
             : `<div class="item-row-img-placeholder"><i class="fa-solid fa-image"></i></div>`;
         div.innerHTML = `
+            <div class="drag-handle" title="Mantén presionado y arrastra para reordenar">
+                <i class="fa-solid fa-grip-vertical"></i>
+            </div>
             ${imgHtml}
-            <div class="item-row-info"><strong>${d.nombre}</strong> ${tag} ${disponibleTag}<p>${d.precio} &mdash; ${d.categoria}</p></div>
+            <div class="item-row-info">
+                <strong>${d.nombre}</strong> ${tag} ${dispTag}
+                <p style="font-size:0.78rem; color:#888;">${d.precio} &mdash; ${d.categoria}</p>
+            </div>
             <div class="item-row-actions">
-                <button class="btn-edit-sm" title="Subir" onclick="reordenarPlato('${d.id}', ${idx}, -1)"><i class="fa-solid fa-arrow-up"></i></button>
-                <button class="btn-edit-sm" title="Bajar" onclick="reordenarPlato('${d.id}', ${idx}, 1)"><i class="fa-solid fa-arrow-down"></i></button>
-                <button class="btn-edit-sm" onclick="editarPlato('${d.id}')"><i class="fa-solid fa-pen"></i></button>
-                <button class="btn-danger" onclick="borrarPlato('${d.id}')"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn-edit-sm" onclick="editarPlato('${d.id}')" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-danger" onclick="borrarPlato('${d.id}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
             </div>`;
         lista.appendChild(div);
     });
+
+    // Destruir instancia anterior si existe
+    if (_sortableInstance) { _sortableInstance.destroy(); _sortableInstance = null; }
+
+    // Solo habilitar drag si NO hay búsqueda activa (para no confundir posiciones)
+    if (!_busquedaActiva && typeof Sortable !== 'undefined') {
+        _sortableInstance = new Sortable(lista, {
+            handle: '.drag-handle',
+            animation: 180,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            onStart: () => {
+                lista.style.minHeight = lista.offsetHeight + 'px';
+            },
+            onEnd: async () => {
+                lista.style.minHeight = '';
+                await guardarNuevoOrdenPlatos();
+            }
+        });
+    }
 }
 
-// Filtro solo por texto (sin categoría para no interferir con el reordenamiento)
+/* Guarda el nuevo orden en Firestore solo para las placas visibles,
+   manteniendo el orden de las demás categorías intacto */
+async function guardarNuevoOrdenPlatos() {
+    const rows = document.querySelectorAll('#platos-lista .item-row');
+    const idsNuevoOrden = [...rows].map(r => r.dataset.id);
+
+    // Obtener los valores de 'orden' actuales de las filas visibles (en su orden previo)
+    const platosEnVista = idsNuevoOrden
+        .map(id => _todosLosPlatos.find(p => p.id === id))
+        .filter(Boolean);
+
+    // Repartir los mismos valores de orden entre las nuevas posiciones
+    // (así otras categorías no se ven afectadas)
+    const ordenesActuales = platosEnVista.map(p => p.orden ?? Date.now()).sort((a, b) => a - b);
+
+    // Si todos los valores son iguales o hay duplicados, generar nuevos
+    const distintos = new Set(ordenesActuales).size === ordenesActuales.length;
+    const valoresParaAsignar = distintos
+        ? ordenesActuales
+        : idsNuevoOrden.map((_, i) => Date.now() + i * 100);
+
+    showStatus('platos-status', 'Guardando orden...');
+    const updates = [];
+    idsNuevoOrden.forEach((id, i) => {
+        const plato = _todosLosPlatos.find(p => p.id === id);
+        if (!plato) return;
+        const nuevoOrden = valoresParaAsignar[i];
+        plato.orden = nuevoOrden; // actualizar en memoria
+        updates.push(updateDoc(doc(db, 'platos', id), { orden: nuevoOrden }));
+    });
+
+    try {
+        await Promise.all(updates);
+        showStatus('platos-status', '✓ Orden guardado');
+    } catch(e) {
+        showStatus('platos-status', 'Error al guardar orden', true);
+    }
+}
+
+// Búsqueda: deshabilita drag cuando hay texto (para no confundir orden)
 window.filtrarListaPlatos = function() {
-    const q = (document.getElementById('platos-search')?.value || '').toLowerCase();
-    const filtered = _todosLosPlatos.filter(p =>
-        !q || p.nombre.toLowerCase().includes(q)
-    );
-    renderListaPlatos(filtered);
+    _busquedaActiva = (document.getElementById('platos-search')?.value || '').toLowerCase().trim();
+    renderListaPlatos(platosVisibles());
+    // Mostrar aviso si búsqueda activa
+    const hint = document.querySelector('.reorder-hint');
+    if (hint) {
+        hint.style.opacity = _busquedaActiva ? '0.3' : '1';
+        hint.title = _busquedaActiva ? 'Limpia la búsqueda para poder reordenar' : '';
+    }
 };
 
-window.borrarPlato = async (id) => { if (confirm('¿Eliminar este plato?')) { await deleteDoc(doc(db, 'platos', id)); cargarPlatos(); cargarDashboard(); } };
+window.borrarPlato = async (id) => {
+    if (confirm('¿Eliminar este plato?')) {
+        await deleteDoc(doc(db, 'platos', id));
+        _todosLosPlatos = _todosLosPlatos.filter(p => p.id !== id);
+        renderCategoryTabs();
+        renderListaPlatos(platosVisibles());
+        cargarDashboard();
+    }
+};
 
 window.editarPlato = async (id) => {
     const docSnap = await getDoc(doc(db, 'platos', id));
@@ -443,11 +580,9 @@ window.editarPlato = async (id) => {
         document.getElementById('plato-oferta-precio').value = d.ofertaPrecio || '';
         document.getElementById('plato-oferta-fields').classList.toggle('hidden', !d.oferta);
         document.getElementById('plato-disponible').checked = d.disponible !== false;
-        // Etiquetas
         document.querySelectorAll('.plato-etiqueta').forEach(cb => {
             cb.checked = (d.etiquetas || []).includes(cb.value);
         });
-
         if (d.imagenBase64) {
             estadoPlatoImg.base64 = d.imagenBase64;
             document.getElementById('plato-preview-box').style.display = 'flex';
@@ -458,21 +593,6 @@ window.editarPlato = async (id) => {
         }
         scrollToTop();
     }
-};
-
-/* Reordenar platos: intercambia el campo orden con el plato adyacente */
-window.reordenarPlato = async (id, idx, dir) => {
-    const arr = _todosLosPlatos;
-    const newIdx = idx + dir;
-    if (newIdx < 0 || newIdx >= arr.length) return;
-    const a = arr[idx], b = arr[newIdx];
-    const ordenA = a.orden ?? idx;
-    const ordenB = b.orden ?? newIdx;
-    await Promise.all([
-        updateDoc(doc(db, 'platos', a.id), { orden: ordenB }),
-        updateDoc(doc(db, 'platos', b.id), { orden: ordenA })
-    ]);
-    cargarPlatos();
 };
 
 /* ============================

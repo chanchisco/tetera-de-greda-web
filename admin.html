@@ -68,6 +68,30 @@
         .status-ok { color: #2d7a2d; }
         .status-err { color: var(--greda-red); }
 
+        /* DRAG & DROP */
+        .drag-handle {
+            cursor: grab; padding: 6px 10px; color: #bbb; font-size: 1.1rem;
+            flex-shrink: 0; display: flex; align-items: center;
+            border-right: 1px solid #f0ebe4; margin-right: 6px;
+            touch-action: none;
+        }
+        .drag-handle:hover { color: var(--greda-orange); background: #fdf3e7; border-radius: 6px 0 0 6px; }
+        .drag-handle:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.35; background: #fdf3e7 !important; border: 2px dashed var(--greda-orange) !important; }
+        .sortable-chosen { box-shadow: 0 4px 18px rgba(229,135,41,0.25) !important; transform: scale(1.01); z-index: 10; }
+        .sortable-drag { opacity: 1; }
+
+        /* TABS DE CATEGORÍA */
+        .cat-tabs-wrap { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .cat-tab-btn {
+            padding: 6px 14px; border-radius: 20px; border: 1.5px solid #ddd;
+            background: white; cursor: pointer; font-size: 0.78rem; font-weight: 600;
+            color: #888; transition: 0.18s; font-family: inherit; white-space: nowrap;
+        }
+        .cat-tab-btn:hover { border-color: var(--greda-orange); color: var(--greda-orange); }
+        .cat-tab-btn.active { background: var(--greda-orange); color: white; border-color: var(--greda-orange); }
+        .reorder-hint { font-size: 0.78rem; color: #aaa; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
         /* TOGGLE SWITCH */
         .switch-container { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
         .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
@@ -264,10 +288,13 @@
 
                 <div class="card">
                     <h2><i class="fa-solid fa-list"></i> Platos actuales</h2>
-                    <!-- Solo búsqueda por texto; sin filtro de categoría para que el reordenamiento funcione correctamente -->
-                    <div style="margin-bottom:12px;">
-                        <input type="text" id="platos-search" placeholder="Buscar plato por nombre..." style="width:100%;" oninput="filtrarListaPlatos()">
+                    <!-- Tabs por categoría -->
+                    <div class="cat-tabs-wrap" id="platos-cat-tabs"></div>
+                    <!-- Búsqueda -->
+                    <div style="margin-bottom:10px;">
+                        <input type="text" id="platos-search" placeholder="Buscar por nombre..." style="width:100%;" oninput="filtrarListaPlatos()">
                     </div>
+                    <p class="reorder-hint"><i class="fa-solid fa-grip-vertical" style="color:var(--greda-orange);"></i> Arrastra desde el icono de la izquierda para reordenar</p>
                     <div id="platos-lista">Cargando...</div>
                 </div>
             </div>
@@ -477,6 +504,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/browser-image-compression/2.0.2/browser-image-compression.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script type="module" src="admin.js"></script>
 </body>
 </html>
