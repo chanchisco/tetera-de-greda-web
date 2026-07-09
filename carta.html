@@ -190,7 +190,7 @@
     </header>
 
     <section class="menu-section">
-        <h2 class="section-title">Nuestra Carta</h2>
+        <h2 class="section-title">Nuestra carta</h2>
 
         <!-- BUSCADOR -->
         <div class="search-bar-wrap">
@@ -264,18 +264,34 @@
         import { db } from './firebase-config.js';
         import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Flash fix: cargar portada y mostrar hero
-        (async () => {
-            const hero = document.getElementById('hero-carta');
+        // CACHÉ de portada: mostrar inmediatamente, actualizar en segundo plano
+        (function() {
             try {
-                const snap = await getDoc(doc(db, 'configuracion', 'portadas'));
-                if (snap.exists() && snap.data().carta) {
-                    hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${snap.data().carta}')`;
+                const cached = JSON.parse(localStorage.getItem('greda_portadas_v1') || 'null');
+                if (cached && cached.carta) {
+                    const hero = document.getElementById('hero-carta');
+                    hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${cached.carta}')`;
                     hero.style.backgroundSize = 'cover';
                     hero.style.backgroundPosition = 'center';
                 }
             } catch(e) {}
-            hero.classList.add('loaded');
+        })();
+
+        // Actualizar portada desde Firestore en segundo plano
+        (async () => {
+            try {
+                const snap = await getDoc(doc(db, 'configuracion', 'portadas'));
+                if (snap.exists()) {
+                    const p = snap.data();
+                    try { localStorage.setItem('greda_portadas_v1', JSON.stringify(p)); } catch(e) {}
+                    if (p.carta) {
+                        const hero = document.getElementById('hero-carta');
+                        hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${p.carta}')`;
+                        hero.style.backgroundSize = 'cover';
+                        hero.style.backgroundPosition = 'center';
+                    }
+                }
+            } catch(e) {}
         })();
 
         const ORDEN_SUBCATEGORIAS = ['Aperitivos y Cócteles', 'Vinos Blancos y Tintos', 'Cervezas', 'Sin Alcohol & Cafetería'];

@@ -66,17 +66,14 @@
         .valor-card p { color: #bbb; font-size: 0.95rem; line-height: 1.7; }
 
         /* ── GALERÍA ── */
-        .gallery-section { padding: 60px 0; background: var(--greda-brown); }
-        .gallery-section-inner { padding: 0 30px 20px; }
-        .gallery-section h2 { text-align: center; color: var(--greda-orange); font-size: 2.2rem; margin-bottom: 30px; padding: 60px 20px 30px; }
-        .scrolling-gallery { display: flex; overflow-x: auto; gap: 18px; padding: 10px 28px 28px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-        .scrolling-gallery::-webkit-scrollbar { height: 6px; }
-        .scrolling-gallery::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .gallery-section { padding: 60px 0; background: var(--bg-light); }
+        .gallery-section h2 { text-align: center; color: var(--greda-red); font-size: 2.2rem; margin-bottom: 30px; padding: 0 20px; }
+        .scrolling-gallery { display: flex; overflow-x: auto; gap: 15px; padding: 15px 20px; background: var(--greda-brown); scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+        .scrolling-gallery::-webkit-scrollbar { height: 8px; }
         .scrolling-gallery::-webkit-scrollbar-thumb { background: var(--greda-orange); border-radius: 10px; }
-        .gallery-item { flex: 0 0 320px; height: 380px; scroll-snap-align: start; border-radius: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; display: block; }
-        .gallery-item:hover img { transform: scale(1.07); }
-        @media (max-width: 600px) { .gallery-item { flex: 0 0 260px; height: 300px; } }
+        .gallery-item { flex: 0 0 300px; height: 300px; scroll-snap-align: start; border-radius: 10px; overflow: hidden; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .gallery-item:hover img { transform: scale(1.08); }
 
         /* ── MAPA Y CONTACTO ── */
         .social-map-section { background-color: var(--greda-brown); color: white; padding: 60px 20px; }
@@ -273,17 +270,29 @@
 
         // Cargar datos dinámicos
         async function cargarDatos() {
-            // Portada con flash-fix
+            // CACHÉ de portada: mostrar inmediatamente desde localStorage
             const hero = document.getElementById('hero-nosotros');
             try {
-                const snap = await getDoc(doc(db, 'configuracion', 'portadas'));
-                if (snap.exists() && snap.data().nosotros) {
-                    hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${snap.data().nosotros}')`;
+                const cached = JSON.parse(localStorage.getItem('greda_portadas_v1') || 'null');
+                if (cached && cached.nosotros) {
+                    hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${cached.nosotros}')`;
                     hero.style.backgroundSize = 'cover';
                     hero.style.backgroundPosition = 'center';
                 }
             } catch(e) {}
-            hero.classList.add('loaded');
+
+            // Actualizar portada desde Firestore en segundo plano
+            getDoc(doc(db, 'configuracion', 'portadas')).then(snap => {
+                if (snap.exists()) {
+                    const p = snap.data();
+                    try { localStorage.setItem('greda_portadas_v1', JSON.stringify(p)); } catch(e) {}
+                    if (p.nosotros) {
+                        hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${p.nosotros}')`;
+                        hero.style.backgroundSize = 'cover';
+                        hero.style.backgroundPosition = 'center';
+                    }
+                }
+            }).catch(() => {});
 
             // Historia
             try {

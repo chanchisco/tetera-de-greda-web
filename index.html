@@ -442,94 +442,130 @@
             else stickyNav.classList.remove('visible');
         }, { passive: true });
 
+        /* ─── CACHÉ DE IMÁGENES ───────────────────────────────────── */
+        const CACHE_KEY = 'greda_portadas_v1';
+        const SECCIONES_KEY = 'greda_secciones_v1';
+        const MENUDIA_KEY  = 'greda_menudia_v1';
+
+        function getCache(key) {
+            try { return JSON.parse(localStorage.getItem(key) || 'null'); }
+            catch(e) { return null; }
+        }
+        function setCache(key, data) {
+            try { localStorage.setItem(key, JSON.stringify(data)); }
+            catch(e) {} // Si el storage está lleno (base64 grande) ignoramos
+        }
+
+        function aplicarPortada(base64) {
+            const hero = document.getElementById('hero-header');
+            if (base64) {
+                hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${base64}')`;
+                hero.style.backgroundSize = 'cover';
+                hero.style.backgroundPosition = 'center';
+            }
+        }
+
+        // 1) Mostrar caché inmediatamente (síncrono, 0 ms de espera)
+        const cachedPortadas = getCache(CACHE_KEY);
+        if (cachedPortadas && cachedPortadas.inicio) {
+            aplicarPortada(cachedPortadas.inicio);
+        }
+        const cachedSecciones = getCache(SECCIONES_KEY);
+        if (cachedSecciones) {
+            const d = cachedSecciones;
+            if (d.quienesSomosImg) document.getElementById('qs-imagen').style.backgroundImage = `url('${d.quienesSomosImg}')`;
+            if (d.nuestraCartaImg) document.getElementById('nc-imagen').style.backgroundImage = `url('${d.nuestraCartaImg}')`;
+            if (d.nuestraCartaTitulo) document.getElementById('nc-titulo-display').textContent = d.nuestraCartaTitulo;
+            if (d.quienesSomosTexto) document.getElementById('qs-texto-display').textContent = d.quienesSomosTexto;
+            if (d.quienesSomosHabilitado === false) document.getElementById('qs-section').style.display = 'none';
+            if (d.nuestraCartaHabilitado === false) document.getElementById('nc-section').style.display = 'none';
+        }
+        const cachedMenu = getCache(MENUDIA_KEY);
+        if (cachedMenu) {
+            aplicarMenuDia(cachedMenu);
+        }
+
+        function aplicarMenuDia(md) {
+            const container = document.getElementById('menu-dia-imgs-container');
+            const imgs = [];
+            if (md.img1) imgs.push(md.img1);
+            if (md.img2) imgs.push(md.img2);
+            if (imgs.length > 0) {
+                container.innerHTML = '';
+                imgs.forEach(src => {
+                    const slot = document.createElement('div');
+                    slot.className = 'menu-dia-img-slot';
+                    slot.innerHTML = `<img src="${src}" alt="Menú del Día">`;
+                    container.appendChild(slot);
+                });
+            }
+            if (md.incluye) {
+                const incluyeList = document.getElementById('md-incluye-display');
+                incluyeList.innerHTML = '';
+                md.incluye.split('\n').forEach(line => {
+                    if(line.trim()) incluyeList.innerHTML += `<li><i class="fa-solid fa-utensils"></i> ${line}</li>`;
+                });
+            }
+            if (md.acompanamientos) document.getElementById('md-acomp-display').textContent = md.acompanamientos;
+            if (md.precioServir) document.getElementById('md-precio-s-display').textContent = md.precioServir;
+            if (md.precioLlevar) document.getElementById('md-precio-l-display').textContent = md.precioLlevar;
+        }
+
+        // 2) Actualizar desde Firestore en segundo plano (no bloquea el render)
         async function cargarDinamico() {
             try {
-                // --- PORTADA HERO ---
                 const hero = document.getElementById('hero-header');
-                const portadasSnap = await getDoc(doc(db, 'configuracion', 'portadas'));
-                if (portadasSnap.exists() && portadasSnap.data().inicio) {
-                    const base64 = portadasSnap.data().inicio;
-                    hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${base64}')`;
-                    hero.style.backgroundSize = 'cover';
-                    hero.style.backgroundPosition = 'center';
-                }
-                hero.classList.add('loaded');
 
-                // --- STICKY NAV OPCIÓN (desde Firestore si existe) ---
-                // (El sticky nav siempre está activo, se puede desactivar via toggle admin en el futuro)
+                // --- PORTADA HERO ---
+                const portadasSnap = await getDoc(doc(db, 'configuracion', 'portadas'));
+                if (portadasSnap.exists()) {
+                    const p = portadasSnap.data();
+                    setCache(CACHE_KEY, p);
+                    if (p.inicio) aplicarPortada(p.inicio);
+                }
 
                 // --- IMÁGENES DE SECCIONES ---
                 const seccionesSnap = await getDoc(doc(db, 'configuracion', 'imagenesSeccion'));
                 if (seccionesSnap.exists()) {
                     const d = seccionesSnap.data();
+                    setCache(SECCIONES_KEY, d);
                     if (d.quienesSomosHabilitado === false) {
                         document.getElementById('qs-section').style.display = 'none';
                     } else {
-                        if (d.quienesSomosImg) {
-                            document.getElementById('qs-imagen').style.backgroundImage = `url('${d.quienesSomosImg}')`;
-                        }
-                        if (d.quienesSomosTexto) {
-                            document.getElementById('qs-texto-display').textContent = d.quienesSomosTexto;
-                        }
+                        if (d.quienesSomosImg) document.getElementById('qs-imagen').style.backgroundImage = `url('${d.quienesSomosImg}')`;
+                        if (d.quienesSomosTexto) document.getElementById('qs-texto-display').textContent = d.quienesSomosTexto;
                     }
                     if (d.nuestraCartaHabilitado === false) {
                         document.getElementById('nc-section').style.display = 'none';
                     } else {
-                        if (d.nuestraCartaTitulo) {
-                            document.getElementById('nc-titulo-display').textContent = d.nuestraCartaTitulo;
-                        }
-                        if (d.nuestraCartaImg) {
-                            document.getElementById('nc-imagen').style.backgroundImage = `url('${d.nuestraCartaImg}')`;
-                        }
+                        if (d.nuestraCartaTitulo) document.getElementById('nc-titulo-display').textContent = d.nuestraCartaTitulo;
+                        if (d.nuestraCartaImg) document.getElementById('nc-imagen').style.backgroundImage = `url('${d.nuestraCartaImg}')`;
                     }
-                }
 
-                // --- IMAGEN ALEATORIA DE PLATOS en Nuestra Carta (si no hay imagen de sección configurada) ---
-                const secD = seccionesSnap.exists() ? seccionesSnap.data() : {};
-                if (!secD.nuestraCartaImg && secD.nuestraCartaHabilitado !== false) {
-                    try {
-                        const platosSnap = await getDocs(query(collection(db, 'platos'), orderBy('orden')));
-                        const conImg = [];
-                        platosSnap.forEach(d => { if (d.data().imagenBase64) conImg.push(d.data()); });
-                        if (conImg.length > 0) {
-                            const random = conImg[Math.floor(Math.random() * conImg.length)];
-                            document.getElementById('nc-imagen').style.backgroundImage = `url('${random.imagenBase64}')`;
-                        }
-                    } catch(e) {}
+                    // Imagen aleatoria de plato si no hay imagen de sección
+                    if (!d.nuestraCartaImg && d.nuestraCartaHabilitado !== false) {
+                        try {
+                            const platosSnap = await getDocs(query(collection(db, 'platos'), orderBy('orden')));
+                            const conImg = [];
+                            platosSnap.forEach(ds => { if (ds.data().imagenBase64) conImg.push(ds.data()); });
+                            if (conImg.length > 0) {
+                                const random = conImg[Math.floor(Math.random() * conImg.length)];
+                                document.getElementById('nc-imagen').style.backgroundImage = `url('${random.imagenBase64}')`;
+                            }
+                        } catch(e) {}
+                    }
                 }
 
                 // --- MENÚ DEL DÍA ---
                 const menuDiaSnap = await getDoc(doc(db, 'configuracion', 'menuDia'));
                 if (menuDiaSnap.exists()) {
                     const md = menuDiaSnap.data();
-                    const container = document.getElementById('menu-dia-imgs-container');
-                    const imgs = [];
-                    if (md.img1) imgs.push(md.img1);
-                    if (md.img2) imgs.push(md.img2);
-                    if (imgs.length > 0) {
-                        container.innerHTML = '';
-                        imgs.forEach(src => {
-                            const slot = document.createElement('div');
-                            slot.className = 'menu-dia-img-slot';
-                            slot.innerHTML = `<img src="${src}" alt="Menú del Día">`;
-                            container.appendChild(slot);
-                        });
-                    }
-
-                    if (md.incluye) {
-                        const incluyeList = document.getElementById('md-incluye-display');
-                        incluyeList.innerHTML = '';
-                        md.incluye.split('\n').forEach(line => {
-                            if(line.trim()) incluyeList.innerHTML += `<li><i class="fa-solid fa-utensils"></i> ${line}</li>`;
-                        });
-                    }
-                    if (md.acompanamientos) document.getElementById('md-acomp-display').textContent = md.acompanamientos;
-                    if (md.precioServir) document.getElementById('md-precio-s-display').textContent = md.precioServir;
-                    if (md.precioLlevar) document.getElementById('md-precio-l-display').textContent = md.precioLlevar;
+                    setCache(MENUDIA_KEY, md);
+                    aplicarMenuDia(md);
                 }
+
             } catch (err) {
                 console.warn('No se pudo cargar contenido dinámico:', err.message);
-                document.getElementById('hero-header').classList.add('loaded');
             }
         }
 
