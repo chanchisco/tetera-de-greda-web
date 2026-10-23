@@ -174,6 +174,7 @@
             .sticky-nav-links a { flex: 1; text-align: center; padding: 14px 8px; font-size: 0.68rem; letter-spacing: 0.5px; }
         }
     </style>
+    <link rel="stylesheet" href="privacy.css">
 </head>
 <body>
 
@@ -234,7 +235,7 @@
                 </a>
             </div>
             <div class="map-box">
-                <iframe src="https://maps.google.com/maps?q=Santa%20Ana%2098,%20Villa%20Alemana,%20Chile&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+                <iframe title="Ubicación de La Tetera de Greda" hidden data-privacy-map="https://maps.google.com/maps?q=Santa%20Ana%2098,%20Villa%20Alemana,%20Chile&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
     </section>
@@ -302,7 +303,7 @@
 
         function formatTags(tags) {
             if (!tags || !tags.length) return '';
-            return `<div class="item-tags">${tags.map(t => `<span class="item-tag">${t}</span>`).join('')}</div>`;
+            return `<div class="item-tags">${tags.map(t => `<span class="item-tag">${escapeHtml(t)}</span>`).join('')}</div>`;
         }
 
         // Estado global de platos para el buscador
@@ -336,7 +337,7 @@
                     }
 
                     const imgHtml = img
-                        ? `<img src="${img}" alt="${escapeHtml(p.nombre)}" class="plato-img">`
+                        ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(p.nombre)}" class="plato-img">`
                         : '';
 
                     const div = document.createElement('div');
@@ -385,7 +386,7 @@
                         const item = document.createElement('div');
                         item.className = 'drink-list-item';
                         const tagsHtml = b.etiquetas && b.etiquetas.length
-                            ? `<div class="drink-tags">${b.etiquetas.map(t => `<span class="item-tag">${t}</span>`).join('')}</div>` : '';
+                            ? `<div class="drink-tags">${b.etiquetas.map(t => `<span class="item-tag">${escapeHtml(t)}</span>`).join('')}</div>` : '';
                         item.innerHTML = `<span class="drink-name">${escapeHtml(b.nombre)}${tagsHtml}</span><div class="drink-dots"></div><span class="drink-price">${escapeHtml(b.precio)}</span>`;
                         drinks.appendChild(item);
                     });
@@ -472,5 +473,6 @@
             if (e.key === 'Enter') { e.target.blur(); }
         });
     </script>
+    <script type="module" src="privacy.js"></script>
 </body>
 </html>

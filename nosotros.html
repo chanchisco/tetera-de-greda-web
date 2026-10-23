@@ -150,6 +150,7 @@
         .admin-modal-close:hover { background: #f2f2f2; }
         .admin-modal-box iframe { width: 100%; height: 100%; border: none; }
     </style>
+    <link rel="stylesheet" href="privacy.css">
 </head>
 <body>
 
@@ -232,7 +233,7 @@
                 </a>
             </div>
             <div class="map-box">
-                <iframe src="https://maps.google.com/maps?q=Santa%20Ana%2098,%20Villa%20Alemana,%20Chile&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+                <iframe title="Ubicación de La Tetera de Greda" hidden data-privacy-map="https://maps.google.com/maps?q=Santa%20Ana%2098,%20Villa%20Alemana,%20Chile&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
     </section>
@@ -335,7 +336,8 @@
                     if(!gSnap.empty) {
                         cont.innerHTML = '';
                         gSnap.forEach(d => {
-                            cont.innerHTML += `<div class="gallery-item"><img src="${d.data().url}" alt="Nuestro Espacio"></div>`;
+                            const item = document.createElement('div'); item.className = 'gallery-item';
+                            const image = document.createElement('img'); image.src = d.data().url; image.alt = 'Nuestro Espacio'; item.append(image); cont.append(item);
                         });
                     } else {
                         // Sin imágenes en Firestore: ocultar sección entera
@@ -360,5 +362,6 @@
         adminClose.addEventListener('click', cerrarAdmin);
         adminOverlay.addEventListener('click', (e) => { if (e.target === adminOverlay) cerrarAdmin(); });
     </script>
+    <script type="module" src="privacy.js"></script>
 </body>
 </html>

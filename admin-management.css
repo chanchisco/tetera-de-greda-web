@@ -1,0 +1,30 @@
+/* Añadidos: conservan la paleta, fuentes y estructura del panel existente. */
+:root { --management-ink:#401b0f; --management-accent:#7a281d; --management-line:#c8b8a8; --management-radius:12px; --management-gap:1rem; }
+.management-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; margin:1rem 0; }
+.management-actions h2 { margin:0; }
+.management-button { min-height:44px; background:white; color:var(--management-ink); border:1px solid var(--management-line); border-radius:8px; padding:.75rem 1rem; font:600 .85rem 'Poppins',sans-serif; cursor:pointer; }
+.management-button.primary { background:var(--management-accent); color:white; border-color:var(--management-accent); }
+.management-button.danger { color:var(--management-accent); border-color:var(--management-accent); }
+.management-button:hover { background:#faf3e0; color:var(--management-ink); }
+.management-button:active { transform:translateY(1px); }
+.management-button:disabled { opacity:.55; cursor:not-allowed; }
+.management-button:focus-visible, .management-form :focus-visible, #management-dialog :focus-visible, .management-user input:focus-visible { outline:3px solid var(--management-ink); outline-offset:3px; }
+.management-form { max-width:520px; margin:1.5rem 0; }
+.management-form p, .access-note { font-size:.8rem; margin:.75rem 0; }
+.management-form button { margin-top:1rem; }
+.management-user { border-top:1px solid var(--management-line); padding:1rem 0; overflow-wrap:anywhere; }
+.management-user label { display:flex; align-items:center; gap:.75rem; min-height:44px; }
+.management-user input { width:22px; height:22px; accent-color:var(--management-accent); }
+#management-status, #security-feedback, #recovery-status { margin-top:1rem; font-size:.9rem; white-space:pre-line; }
+[data-error="true"] { color:#7a281d; font-weight:600; }
+#management-dialog { margin:auto; width:min(540px,calc(100% - 2rem)); max-height:85dvh; overflow:auto; border:1px solid var(--management-line); border-radius:var(--management-radius); padding:1.5rem; color:var(--management-ink); font-family:'Poppins',sans-serif; }
+#management-dialog::backdrop { background:#401b0f99; }
+#management-dialog h2 { font-size:1.4rem; margin-bottom:1rem; }
+#management-dialog-text { white-space:pre-line; overflow-wrap:anywhere; }
+#management-dialog-fields code { display:block; margin:1rem 0; overflow-wrap:anywhere; user-select:all; }
+#management-dialog input { min-height:44px; }
+.login-box { max-height:95dvh; overflow-y:auto; }
+.login-box [hidden], [hidden] { display:none !important; }
+.access-note a { color:#7a281d; }
+@media(max-width:480px) { .management-actions .management-button { flex:1 1 100%; } }
+@media(prefers-reduced-motion:reduce) { .management-button { transform:none; } }

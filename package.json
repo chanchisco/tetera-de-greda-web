@@ -1,0 +1,14 @@
+{
+  "name": "tetera-de-greda-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/serve.mjs",
+    "admins:inventario": "node scripts/migrate-admins.mjs",
+    "admins:importar": "node scripts/migrate-admins.mjs --apply"
+  },
+  "engines": { "node": "22.x" },
+  "dependencies": { "firebase-admin": "^13.6.0" }
+}

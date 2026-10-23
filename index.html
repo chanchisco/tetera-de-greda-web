@@ -256,6 +256,7 @@
         .admin-modal-close:hover { background: #f2f2f2; }
         .admin-modal-box iframe { width: 100%; height: 100%; border: none; }
     </style>
+    <link rel="stylesheet" href="privacy.css">
 </head>
 <body>
 
@@ -401,7 +402,7 @@
                 </a>
             </div>
             <div class="map-box">
-                <iframe src="https://maps.google.com/maps?q=Santa%20Ana%2098,%20Villa%20Alemana,%20Chile&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+                <iframe title="Ubicación de La Tetera de Greda" hidden data-privacy-map="https://maps.google.com/maps?q=Santa%20Ana%2098,%20Villa%20Alemana,%20Chile&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
     </section>
@@ -495,7 +496,7 @@
                 imgs.forEach(src => {
                     const slot = document.createElement('div');
                     slot.className = 'menu-dia-img-slot';
-                    slot.innerHTML = `<img src="${src}" alt="Menú del Día">`;
+                    const image = document.createElement('img'); image.src = src; image.alt = 'Menú del Día'; slot.append(image);
                     container.appendChild(slot);
                 });
             }
@@ -503,7 +504,7 @@
                 const incluyeList = document.getElementById('md-incluye-display');
                 incluyeList.innerHTML = '';
                 md.incluye.split('\n').forEach(line => {
-                    if(line.trim()) incluyeList.innerHTML += `<li><i class="fa-solid fa-utensils"></i> ${line}</li>`;
+                    if(line.trim()) { const item = document.createElement('li'); const icon = document.createElement('i'); icon.className = 'fa-solid fa-utensils'; icon.setAttribute('aria-hidden', 'true'); item.append(icon, document.createTextNode(' ' + line)); incluyeList.append(item); }
                 });
             }
             if (md.acompanamientos) document.getElementById('md-acomp-display').textContent = md.acompanamientos;
@@ -587,5 +588,6 @@
         adminClose.addEventListener('click', cerrarAdmin);
         adminOverlay.addEventListener('click', (e) => { if (e.target === adminOverlay) cerrarAdmin(); });
     </script>
+    <script type="module" src="privacy.js"></script>
 </body>
 </html>

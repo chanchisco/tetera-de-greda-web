@@ -149,6 +149,7 @@
         /* Overlay posicionado via JS — el box-shadow oscurece fuera del área de recorte */
         .cropper-overlay { border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 0 0 9999px rgba(0,0,0,0.55); pointer-events: none; position: absolute; }
     </style>
+    <link rel="stylesheet" href="admin-management.css">
 </head>
 <body>
 
@@ -157,11 +158,18 @@
         <div class="logo-icon"><img src="logo tetera.png" alt="Logo"></div>
         <h1>La Tetera de Greda</h1>
         <form id="login-form">
-            <input type="email" id="login-email" placeholder="admin@ejemplo.com" required>
-            <input type="password" id="login-password" placeholder="••••••••" required>
+            <label for="login-email">Correo electrónico</label>
+            <input type="email" id="login-email" placeholder="admin@ejemplo.com" autocomplete="username" required>
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
             <button type="submit">Ingresar</button>
-            <p id="login-error" style="color:red; font-size:0.85rem; margin-top:10px;"></p>
+            <p id="login-error" role="alert" style="color:#7a281d; font-size:0.85rem; margin-top:10px;"></p>
         </form>
+        <button type="button" id="forgot-password">Olvidé mi contraseña</button>
+        <button type="button" id="access-retry" hidden>Volver a comprobar acceso</button>
+        <button type="button" id="access-signout" hidden>Usar otra cuenta</button>
+        <p id="recovery-status" role="status"></p>
+        <p class="access-note">Acceso exclusivo para personal autorizado. <a href="privacidad.html" target="_blank" rel="noopener">Privacidad</a></p>
     </div>
 </div>
 
@@ -182,12 +190,23 @@
             <button class="nav-btn" data-page="portadas"><i class="fa-solid fa-image"></i> Portadas</button>
             <button class="nav-btn" data-page="menudia"><i class="fa-solid fa-calendar-day"></i> Menú Día</button>
             <button class="nav-btn" data-page="imagenes"><i class="fa-solid fa-photo-film"></i> Extras</button>
+            <button class="nav-btn hidden" data-page="gestion" id="gestion-nav"><i class="fa-solid fa-users-gear" aria-hidden="true"></i> Gestión</button>
         </nav>
 
         <div class="content">
 
             <!-- INICIO / DASHBOARD -->
             <div class="page active" id="page-inicio">
+                <section class="card account-security" aria-labelledby="security-heading">
+                    <h2 id="security-heading">Seguridad de tu cuenta</h2>
+                    <p id="security-status" role="status"></p>
+                    <div class="management-actions">
+                        <button type="button" class="management-button" id="own-recovery">Recuperar mi contraseña</button>
+                        <button type="button" class="management-button" id="verify-email" hidden>Verificar mi correo</button>
+                        <button type="button" class="management-button" id="totp-enroll" hidden>Configurar Google Authenticator</button>
+                    </div>
+                    <p id="security-feedback" role="status"></p>
+                </section>
                 <div class="card" style="text-align:center; padding: 30px 20px;">
                     <div style="font-size:2.5rem; margin-bottom:12px;">&#127869;</div>
                     <h2 style="color:var(--greda-brown); margin-bottom:6px; text-align:center;">Bienvenido al Panel</h2>
@@ -482,6 +501,26 @@
                 </div>
             </div>
 
+            <section class="page" id="page-gestion" aria-labelledby="gestion-heading">
+                <div class="card">
+                    <h2 id="gestion-heading">Gestión de administradores</h2>
+                    <p>Invita personas y decide quién puede gestionar cuentas. Las contraseñas se eligen por correo.</p>
+                    <form id="invite-form" class="management-form">
+                        <label for="invite-email">Correo de la nueva cuenta</label>
+                        <input id="invite-email" type="email" autocomplete="off" maxlength="254" required>
+                        <label for="invite-role">Permiso</label>
+                        <select id="invite-role"><option value="contenido">Administrador de contenido</option><option value="completo">Administrador completo</option></select>
+                        <p>Contenido permite editar las secciones actuales. Completo permite además gestionar cuentas.</p>
+                        <button class="management-button primary" type="submit">Crear y enviar invitación</button>
+                    </form>
+                    <p id="management-status" role="status" aria-live="polite"></p>
+                </div>
+                <div class="card">
+                    <div class="management-actions"><h2>Cuentas autorizadas</h2><button class="management-button" type="button" id="refresh-users">Actualizar lista</button></div>
+                    <p>No puedes modificar tu propia cuenta ni retirar al último administrador completo.</p>
+                    <div id="management-users" aria-busy="false"></div>
+                </div>
+            </section>
         </div><!-- content -->
     </div><!-- main-layout -->
 </div><!-- panel-root -->
@@ -505,6 +544,14 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/browser-image-compression/2.0.2/browser-image-compression.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<dialog id="management-dialog" aria-labelledby="management-dialog-title">
+    <form id="management-dialog-form">
+        <h2 id="management-dialog-title"></h2><p id="management-dialog-text"></p>
+        <div id="management-dialog-fields"></div>
+        <p id="management-dialog-error" role="alert"></p>
+        <div class="management-actions"><button type="button" class="management-button" id="management-dialog-cancel">Cancelar</button><button type="submit" class="management-button primary" id="management-dialog-submit">Continuar</button></div>
+    </form>
+</dialog>
 <script type="module" src="admin.js"></script>
 </body>
 </html>

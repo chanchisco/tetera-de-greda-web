@@ -1,6 +1,12 @@
 import { db, auth } from './firebase-config.js';
 import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { watchAccess, completeMfa } from './admin-management.js';
+// Los editores escriben contenido que luego ve el administrador completo.
+// Tratarlo como texto evita que pueda ejecutar HTML con sus permisos.
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 /* ============================
    AUTH Y UI BÁSICA
@@ -12,21 +18,31 @@ const loginError = document.getElementById('login-error');
 const btnLogout = document.getElementById('btn-logout');
 
 onAuthStateChanged(auth, user => {
-    if (user) { loginPage.style.display = 'none'; panelRoot.classList.remove('hidden'); initAdmin(); }
-    else { loginPage.style.display = 'flex'; panelRoot.classList.add('hidden'); }
+    loginPage.style.display = 'flex'; panelRoot.classList.add('hidden');
+    watchAccess(user, initAdmin);
+    if (!user) loginError.textContent = '';
 });
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value); }
-    catch(err) { loginError.textContent = "Credenciales incorrectas."; }
+    const submit = loginForm.querySelector('button[type="submit"]');
+    submit.disabled = true; loginError.textContent = 'Ingresando…';
+    try {
+        await signInWithEmailAndPassword(auth, document.getElementById('login-email').value.trim(), document.getElementById('login-password').value);
+        document.getElementById('login-password').value = '';
+    } catch(err) {
+        if (err.code === 'auth/multi-factor-auth-required') {
+            try { const result = await completeMfa(err); loginError.textContent = result ? '' : 'Verificación cancelada. Puedes volver a ingresar.'; }
+            catch { loginError.textContent = 'No se pudo verificar el código. Ingresa nuevamente y usa un código vigente.'; }
+        } else loginError.textContent = 'No se pudo ingresar. Revisa los datos y la conexión; si persiste, solicita ayuda.';
+    } finally { submit.disabled = false; }
 });
 btnLogout.addEventListener('click', () => signOut(auth));
 
 function showStatus(elemId, msg, isError = false) {
     const el = document.getElementById(elemId);
     if (!el) { console.warn('showStatus: elemento no encontrado:', elemId); return; }
-    el.innerHTML = isError ? `<i class="fa-solid fa-triangle-exclamation"></i> ${msg}` : `<i class="fa-solid fa-rotate"></i> ${msg}`;
+    el.textContent = msg;
     el.className = 'status-msg ' + (isError ? 'status-err' : 'status-ok');
     setTimeout(() => { if(el) el.innerHTML = ''; }, 3500);
 }
@@ -432,14 +448,14 @@ async function cargarPlatos() {
         const snap = await getDocs(query(collection(db, 'platos'), orderBy('orden')));
         _todosLosPlatos = [];
         snap.forEach(docSnap => {
-            _todosLosPlatos.push({ id: docSnap.id, ...docSnap.data() });
+            _todosLosPlatos.push({ ...docSnap.data(), id: docSnap.id });
         });
     } catch(e) {
         // Si no hay índice de 'orden', cargar sin ordenar
         const snap = await getDocs(collection(db, 'platos'));
         _todosLosPlatos = [];
         snap.forEach(docSnap => {
-            _todosLosPlatos.push({ id: docSnap.id, ...docSnap.data() });
+            _todosLosPlatos.push({ ...docSnap.data(), id: docSnap.id });
         });
     }
     renderCategoryTabs();
@@ -465,7 +481,7 @@ function renderListaPlatos(platos) {
             ? `<span class="tag" style="background:#fde8e8;color:#c0392b;font-size:0.72rem;">Agotado</span>`
             : `<span class="tag" style="background:#eaf7ea;color:#27ae60;font-size:0.72rem;">✓ Disp.</span>`;
         const imgHtml = d.imagenBase64
-            ? `<img class="item-row-img-thumb" src="${d.imagenBase64}" alt="${d.nombre}">`
+            ? `<img class="item-row-img-thumb" src="${escapeHtml(d.imagenBase64)}" alt="${escapeHtml(d.nombre)}">`
             : `<div class="item-row-img-placeholder"><i class="fa-solid fa-image"></i></div>`;
         div.innerHTML = `
             <div class="drag-handle" title="Mantén presionado y arrastra para reordenar">
@@ -473,13 +489,15 @@ function renderListaPlatos(platos) {
             </div>
             ${imgHtml}
             <div class="item-row-info">
-                <strong>${d.nombre}</strong> ${tag} ${dispTag}
-                <p style="font-size:0.78rem; color:#888;">${d.precio} &mdash; ${d.categoria}</p>
+                <strong>${escapeHtml(d.nombre)}</strong> ${tag} ${dispTag}
+                <p style="font-size:0.78rem; color:#888;">${escapeHtml(d.precio)} &mdash; ${escapeHtml(d.categoria)}</p>
             </div>
             <div class="item-row-actions">
-                <button class="btn-edit-sm" onclick="editarPlato('${d.id}')" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                <button class="btn-danger" onclick="borrarPlato('${d.id}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn-edit-sm" title="Editar" aria-label="Editar plato"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-danger" title="Eliminar" aria-label="Eliminar plato"><i class="fa-solid fa-trash"></i></button>
             </div>`;
+        div.querySelector('.btn-edit-sm').onclick = () => window.editarPlato(d.id);
+        div.querySelector('.btn-danger').onclick = () => window.borrarPlato(d.id);
         lista.appendChild(div);
     });
 
@@ -640,7 +658,7 @@ async function cargarBebidas() {
     const snap = await getDocs(query(collection(db, 'bebidas'), orderBy('orden')));
     _todasLasBebidas = [];
     snap.forEach(docSnap => {
-        _todasLasBebidas.push({ id: docSnap.id, ...docSnap.data() });
+        _todasLasBebidas.push({ ...docSnap.data(), id: docSnap.id });
     });
     renderListaBebidas(_todasLasBebidas);
 }
@@ -656,11 +674,13 @@ function renderListaBebidas(bebidas) {
             ? `<span class="tag" style="background:#fde8e8;color:#c0392b;">Agotada</span>`
             : '';
         div.innerHTML = `
-            <div class="item-row-info"><strong>${d.nombre}</strong> ${dispTag}<p>${d.precio} - ${d.subcategoria}</p></div>
+            <div class="item-row-info"><strong>${escapeHtml(d.nombre)}</strong> ${dispTag}<p>${escapeHtml(d.precio)} - ${escapeHtml(d.subcategoria)}</p></div>
             <div class="item-row-actions">
-                <button class="btn-edit-sm" onclick="editarBebida('${d.id}')"><i class="fa-solid fa-pen"></i></button>
-                <button class="btn-danger" onclick="borrarBebida('${d.id}')"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn-edit-sm" aria-label="Editar bebida"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-danger" aria-label="Eliminar bebida"><i class="fa-solid fa-trash"></i></button>
             </div>`;
+        div.querySelector('.btn-edit-sm').onclick = () => window.editarBebida(d.id);
+        div.querySelector('.btn-danger').onclick = () => window.borrarBebida(d.id);
         lista.appendChild(div);
     });
 }
@@ -820,7 +840,7 @@ function renderHistoriaForms() {
         cont.innerHTML += `
             <div class="seccion-card" id="hist-card-${i}">
                 <h3>
-                    <span><i class="fa-solid fa-book-open"></i> Bloque ${i}: ${b.tit || titulos[i-1]}</span>
+                    <span><i class="fa-solid fa-book-open"></i> Bloque ${i}: ${escapeHtml(b.tit || titulos[i-1])}</span>
                 </h3>
                 <div class="switch-container">
                     <label class="switch">
@@ -830,12 +850,12 @@ function renderHistoriaForms() {
                     <span>Mostrar este bloque en la página</span>
                 </div>
                 <label>Título del bloque</label>
-                <input type="text" id="hist-tit${i}" value="${b.tit || ''}" placeholder="${titulos[i-1]}...">
+                <input type="text" id="hist-tit${i}" value="${escapeHtml(b.tit || '')}" placeholder="${titulos[i-1]}...">
                 <label>Texto descriptivo</label>
-                <textarea id="hist-txt${i}" rows="3" placeholder="Descripción...">${b.txt || ''}</textarea>
+                <textarea id="hist-txt${i}" rows="3" placeholder="Descripción...">${escapeHtml(b.txt || '')}</textarea>
                 <label>Imagen del bloque</label>
                 <div class="preview-box" style="height:160px; max-width:100%;">
-                    <img id="hist-img${i}-img" ${b.img ? `src="${b.img}"` : 'class="hidden"'} style="width:100%; height:100%; object-fit:cover;">
+                    <img id="hist-img${i}-img" ${b.img ? `src="${escapeHtml(b.img)}"` : 'class="hidden"'} style="width:100%; height:100%; object-fit:cover;">
                     <div class="no-img-text ${b.img ? 'hidden' : ''}" id="hist-img${i}-no">Sin imagen</div>
                     <button type="button" class="btn-delete-img ${b.img ? '' : 'hidden'}" id="btn-del-hist-img${i}" onclick="borrarHistoriaImg(${i})"><i class="fa-solid fa-trash"></i></button>
                 </div>
@@ -892,11 +912,13 @@ window.cargarGaleria = async () => {
     const addBtn = `<div class="galeria-item galeria-add" onclick="document.getElementById('galeria-file').click()"><i class="fa-solid fa-plus" style="font-size:1.5rem; margin-bottom:5px;"></i> Agregar</div>`;
     cont.innerHTML = 'Cargando...';
     const snap = await getDocs(collection(db, 'galeria'));
-    let html = '';
+    cont.innerHTML = addBtn;
     snap.forEach(d => {
-        html += `<div class="galeria-item"><img src="${d.data().url}" style="width:100%;height:100%;object-fit:cover;"><button class="btn-delete-img" onclick="borrarGaleria('${d.id}')"><i class="fa-solid fa-trash"></i></button></div>`;
+        const item = document.createElement('div'); item.className = 'galeria-item';
+        const image = document.createElement('img'); image.src = d.data().url; image.alt = 'Foto del local';
+        const button = document.createElement('button'); button.type = 'button'; button.className = 'btn-delete-img'; button.setAttribute('aria-label', 'Eliminar foto'); button.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
+        button.onclick = () => window.borrarGaleria(d.id); item.append(image, button); cont.append(item);
     });
-    cont.innerHTML = addBtn + html;
 };
 
 document.getElementById('galeria-habilitar').addEventListener('change', async (e) => {
