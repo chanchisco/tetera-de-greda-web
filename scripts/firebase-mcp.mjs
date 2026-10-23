@@ -2,7 +2,9 @@
 // Usa la sesión local de Firebase CLI; no lee ni imprime credenciales.
 import { spawn } from 'node:child_process';
 import { mkdir, writeFile, readFile } from 'node:fs/promises';
-const child = spawn(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', 'npx.cmd -y firebase-tools@latest mcp --dir . --only core,auth,firestore'], { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
+const child = process.env.FIREBASE_CLI_ENTRY
+  ? spawn(process.execPath,[process.env.FIREBASE_CLI_ENTRY,'mcp','--dir','.','--only','core,auth,firestore'],{windowsHide:true,stdio:['pipe','pipe','pipe']})
+  : spawn(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', 'npx.cmd -y firebase-tools@latest mcp --dir . --only core,auth,firestore'], { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
 let buffer = '', nextId = 0;
 const pending = new Map();
 child.stdout.on('data', chunk => {
@@ -48,7 +50,7 @@ try {
       const result = await request('tools/call', { name: operation.tool, arguments: operation.arguments });
       const safe = redact(result);
       if (operation.outputName && /^[a-z0-9_-]+$/.test(operation.outputName)) await writeFile(`.firebase-private/${operation.outputName}.json`, JSON.stringify(safe, null, 2));
-      console.log(JSON.stringify({ tool: operation.tool, result: safe }));
+      console.log(JSON.stringify(operation.quiet ? {tool:operation.tool,saved:!result.isError} : { tool: operation.tool, result: safe }));
       if (result.isError) throw new Error('La operación falló; se detiene el lote sin continuar.');
     }
   }

@@ -1,5 +1,8 @@
+import { addDoc,getDocs,setDoc,deleteDoc,updateDoc,getDoc,pinRevision,unpinRevision } from './content-client.js';
+import { editImage,prepareImage } from './image-editor.js';
+import { initContentTools,stageImage,bindImageTools,updateMetrics,pendingImage,canReplaceForm } from './content-tools.js';
 import { db, auth } from './firebase-config.js';
-import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { watchAccess, completeMfa } from './admin-management.js';
 // Los editores escriben contenido que luego ve el administrador completo.
@@ -82,7 +85,8 @@ async function cargarDashboard() {
         const di = document.getElementById('dash-imgs');
         if (dp) dp.textContent = platosSnap.size;
         if (db2) db2.textContent = bebidasSnap.size;
-        if (di) di.textContent = galeriaSnap.size;
+        if (di) di.textContent = `${galeriaSnap.size} / 15`;
+        updateMetrics(platosSnap,bebidasSnap,galeriaSnap);
     } catch(e) { console.warn('dashboard error', e); }
 }
 
@@ -129,164 +133,12 @@ attachPriceFormatter('bebida-precio');
    CROPPER MODAL (Universal)
    LÓGICA CORREGIDA: usamos posición relativa del img dentro del container
 ============================ */
-let cropperResolve = null;
-let currentAspectRatio = 1;
-let imgDrag = { active: false, startX: 0, startY: 0, bgX: 0, bgY: 0 };
-
-const cropperModal = document.getElementById('cropper-modal');
-const cropperImg = document.getElementById('cropper-img');
-const cropperOverlay = document.getElementById('cropper-overlay');
-const cropperZoom = document.getElementById('cropper-zoom');
-const cropperContainer = document.getElementById('cropper-container');
-
-// Posición actual de la imagen (en px relativos al centro del contenedor)
-let imgOffsetX = 0, imgOffsetY = 0, imgScale = 1;
-
-async function openCropper(b64Data, aspectRatio) {
-    return new Promise((resolve) => {
-        cropperResolve = resolve;
-        currentAspectRatio = aspectRatio;
-
-        cropperImg.onload = () => {
-            cropperModal.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                const cw = cropperContainer.clientWidth;
-                const ch = cropperContainer.clientHeight;
-
-                // Calcular tamaño del overlay (area de recorte visible)
-                let ow, oh;
-                if (cw / ch > aspectRatio) {
-                    oh = ch * 0.9; ow = oh * aspectRatio;
-                } else {
-                    ow = cw * 0.9; oh = ow / aspectRatio;
-                }
-                cropperOverlay.style.width = `${ow}px`;
-                cropperOverlay.style.height = `${oh}px`;
-                // Centrar overlay
-                cropperOverlay.style.position = 'absolute';
-                cropperOverlay.style.left = `${(cw - ow) / 2}px`;
-                cropperOverlay.style.top = `${(ch - oh) / 2}px`;
-
-                // Escala inicial: la imagen llena el overlay
-                const scaleW = ow / cropperImg.naturalWidth;
-                const scaleH = oh / cropperImg.naturalHeight;
-                imgScale = Math.max(scaleW, scaleH);
-                imgOffsetX = 0;
-                imgOffsetY = 0;
-
-                cropperZoom.min = imgScale * 0.8;
-                cropperZoom.max = imgScale * 5;
-                cropperZoom.step = imgScale * 0.01;
-                cropperZoom.value = imgScale;
-
-                applyCropperTransform();
-            });
-        };
-        cropperImg.src = b64Data;
-    });
-}
-
-function applyCropperTransform() {
-    // La imagen está posicionada en el centro del container con transform
-    cropperImg.style.position = 'absolute';
-    cropperImg.style.top = '50%';
-    cropperImg.style.left = '50%';
-    cropperImg.style.transformOrigin = 'center center';
-    cropperImg.style.transform = `translate(calc(-50% + ${imgOffsetX}px), calc(-50% + ${imgOffsetY}px)) scale(${imgScale})`;
-    cropperImg.style.cursor = 'grab';
-    cropperImg.style.userSelect = 'none';
-    cropperImg.style.pointerEvents = 'none';
-}
-
-cropperZoom.addEventListener('input', (e) => {
-    imgScale = parseFloat(e.target.value);
-    applyCropperTransform();
-});
-
-function cDragStart(e) {
-    if (e.target === cropperZoom || e.target.tagName === 'BUTTON') return;
-    imgDrag.active = true;
-    const pt = e.touches ? e.touches[0] : e;
-    imgDrag.startX = pt.clientX;
-    imgDrag.startY = pt.clientY;
-    imgDrag.bgX = imgOffsetX;
-    imgDrag.bgY = imgOffsetY;
-    e.preventDefault();
-}
-function cDragMove(e) {
-    if (!imgDrag.active) return;
-    e.preventDefault();
-    const pt = e.touches ? e.touches[0] : e;
-    imgOffsetX = imgDrag.bgX + (pt.clientX - imgDrag.startX);
-    imgOffsetY = imgDrag.bgY + (pt.clientY - imgDrag.startY);
-    applyCropperTransform();
-}
-function cDragEnd() { imgDrag.active = false; }
-
-cropperContainer.addEventListener('mousedown', cDragStart);
-cropperContainer.addEventListener('touchstart', cDragStart, { passive: false });
-window.addEventListener('mousemove', cDragMove);
-window.addEventListener('touchmove', cDragMove, { passive: false });
-window.addEventListener('mouseup', cDragEnd);
-window.addEventListener('touchend', cDragEnd);
-
-document.getElementById('btn-crop-cancel').addEventListener('click', () => {
-    cropperModal.classList.add('hidden');
-    if (cropperResolve) cropperResolve(null);
-});
-
-document.getElementById('btn-crop-apply').addEventListener('click', async () => {
-    const cw = cropperContainer.clientWidth;
-    const ch = cropperContainer.clientHeight;
-
-    // Centro del contenedor
-    const containerCenterX = cw / 2;
-    const containerCenterY = ch / 2;
-
-    // Overlay bounds relativas al contenedor
-    const ovLeft = parseFloat(cropperOverlay.style.left);
-    const ovTop = parseFloat(cropperOverlay.style.top);
-    const ovW = parseFloat(cropperOverlay.style.width);
-    const ovH = parseFloat(cropperOverlay.style.height);
-
-    // El centro de la imagen en coordenadas del contenedor
-    const imgCenterInContainer_X = containerCenterX + imgOffsetX;
-    const imgCenterInContainer_Y = containerCenterY + imgOffsetY;
-
-    // Esquina superior izquierda del overlay relativa al centro de la imagen (en coords imagen original)
-    const cropX = (ovLeft - imgCenterInContainer_X) / imgScale + cropperImg.naturalWidth / 2;
-    const cropY = (ovTop - imgCenterInContainer_Y) / imgScale + cropperImg.naturalHeight / 2;
-    const cropW = ovW / imgScale;
-    const cropH = ovH / imgScale;
-
-    // Canvas de salida en alta resolución
-    const outW = Math.round(Math.min(2400, Math.max(800, ovW * 2)));
-    const outH = Math.round(outW / currentAspectRatio);
-
-    const canvas = document.createElement('canvas');
-    canvas.width = outW;
-    canvas.height = outH;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(cropperImg, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
-
-    const base64 = canvas.toDataURL('image/jpeg', 0.9);
-    cropperModal.classList.add('hidden');
-    if (cropperResolve) cropperResolve(base64);
-});
+async function openCropper(source,ratio,context) { return editImage(source,ratio,context); }
 
 /* ============================
    HELPERS
 ============================ */
-async function compressImage(file, maxMB = 0.8, maxDim = 2400) {
-    // Usar maxDim y calidad más alta para portadas que son grandes
-    const options = { maxSizeMB: maxMB, maxWidthOrHeight: maxDim, useWebWorker: true, initialQuality: 0.92 };
-    try {
-        const compressed = await imageCompression(file, options);
-        return await fileToBase64(compressed);
-    } catch (e) {
-        return await fileToBase64(file);
-    }
-}
+async function compressImage(file) { return prepareImage(file); }
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -314,9 +166,7 @@ window.abrirRecortadorPlato = async (input) => {
     const b64 = await openCropper(b64_temp, 4 / 3);
     input.value = '';
     if (b64) {
-        document.getElementById('plato-preview-box').style.display = 'flex';
-        document.getElementById('plato-img-current').src = b64;
-        estadoPlatoImg.base64 = b64;
+        window.actualizarFotoPlato(b64);
         showStatus('plato-status', 'Imagen lista. Recuerda guardar.');
     } else {
         showStatus('plato-status', '');
@@ -327,9 +177,9 @@ window.abrirRecortadorPlato = async (input) => {
 window.recortarYGuardar = async (prefix, input, ratio, saveFunc) => {
     if (input.files.length === 0) return;
     const b64_temp = await compressImage(input.files[0]);
-    const b64 = await openCropper(b64_temp, ratio);
+    const b64 = await openCropper(b64_temp, ratio, prefix);
     input.value = '';
-    if (b64) saveFunc(prefix, b64);
+    if (b64) stageImage(prefix, b64, saveFunc);
 };
 
 // Para historia (necesita statusId propio)
@@ -337,10 +187,10 @@ window.recortarHistoria = async (idx, input) => {
     if (input.files.length === 0) return;
     showStatus(`hist-${idx}-status`, 'Procesando imagen...');
     const b64_temp = await compressImage(input.files[0]);
-    const b64 = await openCropper(b64_temp, 4 / 3);
+    const b64 = await openCropper(b64_temp, 4 / 3, `hist-img${idx}`);
     input.value = '';
     if (!b64) { showStatus(`hist-${idx}-status`, ''); return; }
-    await guardarHistoriaImgSolo(idx, b64);
+    stageImage(`hist-img${idx}`, b64, (_prefix,image)=>guardarHistoriaImgSolo(idx,image));
 };
 
 /* ============================
@@ -363,6 +213,7 @@ platoForm.addEventListener('submit', async (e) => {
         descripcion: document.getElementById('plato-desc').value,
         categoria: document.getElementById('plato-categoria').value,
         imagenBase64: estadoPlatoImg.base64,
+        imagenURL: null,
         imagenPos: null,
         oferta: document.getElementById('plato-oferta-cb').checked,
         ofertaEtiqueta: document.getElementById('plato-oferta-etiqueta').value,
@@ -382,9 +233,11 @@ platoForm.addEventListener('submit', async (e) => {
 });
 
 function limpiarPlatoForm() {
+    if(document.getElementById('plato-id').value)unpinRevision('platos/'+document.getElementById('plato-id').value);
     platoForm.reset();
     document.getElementById('plato-id').value = '';
     estadoPlatoImg.base64 = null;
+    document.getElementById('plato-img-current').removeAttribute('src');
     document.getElementById('plato-preview-box').style.display = 'none';
     document.getElementById('plato-oferta-cb').checked = false;
     document.getElementById('plato-oferta-fields').classList.add('hidden');
@@ -394,7 +247,9 @@ function limpiarPlatoForm() {
 document.getElementById('plato-cancel').addEventListener('click', limpiarPlatoForm);
 document.getElementById('btn-eliminar-foto-plato').addEventListener('click', () => {
     document.getElementById('plato-preview-box').style.display = 'none';
+    document.getElementById('plato-img-current').removeAttribute('src');
     estadoPlatoImg.base64 = null;
+    document.dispatchEvent(new Event('plato-image-changed'));
 });
 
 // Lista de todos los platos y estado de tabs/sortable
@@ -442,6 +297,7 @@ function platosVisibles() {
     if (_busquedaActiva) {
         arr = arr.filter(p => p.nombre.toLowerCase().includes(_busquedaActiva));
     }
+    if(window.filtroSinFoto) arr=arr.filter(p=>!p.imagenBase64&&!p.imagenURL);
     return arr;
 }
 
@@ -568,6 +424,7 @@ async function guardarNuevoOrdenPlatos() {
 
 // Búsqueda: deshabilita drag cuando hay texto (para no confundir orden)
 window.filtrarListaPlatos = function() {
+    document.getElementById('content-clear-missing').hidden=!window.filtroSinFoto;
     _busquedaActiva = (document.getElementById('platos-search')?.value || '').toLowerCase().trim();
     renderListaPlatos(platosVisibles());
     // Mostrar aviso si búsqueda activa
@@ -579,8 +436,9 @@ window.filtrarListaPlatos = function() {
 };
 
 window.borrarPlato = async (id) => {
-    if (confirm('¿Eliminar este plato?')) {
+    if (confirm('¿Enviar a la papelera? Podrás recuperarlo durante 5 días.')) {
         await deleteDoc(doc(db, 'platos', id));
+        if(document.getElementById('plato-id').value===id)limpiarPlatoForm();
         _todosLosPlatos = _todosLosPlatos.filter(p => p.id !== id);
         renderCategoryTabs();
         renderListaPlatos(platosVisibles());
@@ -589,7 +447,9 @@ window.borrarPlato = async (id) => {
 };
 
 window.editarPlato = async (id) => {
+    if(!canReplaceForm('plato-form'))return;
     const docSnap = await getDoc(doc(db, 'platos', id));
+    unpinRevision('platos/'+id);pinRevision('platos/'+id,docSnap.data()?._revision||0);
     if (docSnap.exists()) {
         const d = docSnap.data();
         document.getElementById('plato-id').value = id;
@@ -605,12 +465,13 @@ window.editarPlato = async (id) => {
         document.querySelectorAll('.plato-etiqueta').forEach(cb => {
             cb.checked = (d.etiquetas || []).includes(cb.value);
         });
-        if (d.imagenBase64) {
-            estadoPlatoImg.base64 = d.imagenBase64;
+        if (d.imagenBase64 || d.imagenURL) {
+            estadoPlatoImg.base64 = d.imagenBase64 || d.imagenURL;
             document.getElementById('plato-preview-box').style.display = 'flex';
-            document.getElementById('plato-img-current').src = d.imagenBase64;
+            document.getElementById('plato-img-current').src = d.imagenBase64 || d.imagenURL;
         } else {
             estadoPlatoImg.base64 = null;
+            document.getElementById('plato-img-current').removeAttribute('src');
             document.getElementById('plato-preview-box').style.display = 'none';
         }
         scrollToTop();
@@ -694,9 +555,11 @@ window.filtrarListaBebidas = function() {
     const filtered = _todasLasBebidas.filter(b => !q || b.nombre.toLowerCase().includes(q));
     renderListaBebidas(filtered);
 };
-window.borrarBebida = async (id) => { if (confirm('¿Eliminar?')) { await deleteDoc(doc(db, 'bebidas', id)); cargarBebidas(); cargarDashboard(); } };
+window.borrarBebida = async (id) => { if (confirm('¿Enviar a la papelera? Podrás recuperarlo durante 5 días.')) { await deleteDoc(doc(db, 'bebidas', id)); cargarBebidas(); cargarDashboard(); } };
 window.editarBebida = async (id) => {
+    if(!canReplaceForm('bebida-form'))return;
     const docSnap = await getDoc(doc(db, 'bebidas', id));
+    unpinRevision('bebidas/'+id);pinRevision('bebidas/'+id,docSnap.data()?._revision||0);
     if (docSnap.exists()) {
         const d = docSnap.data();
         document.getElementById('bebida-id').value = id;
@@ -746,7 +609,7 @@ window.guardarPortada = async (prefix, base64) => {
     showStatus(`portada-${tipo}-status`, 'Actualizado correctamente');
 };
 window.borrarPortada = async (tipo) => {
-    if (confirm('¿Eliminar esta portada?')) {
+    if (confirm('¿Enviar a la papelera? Podrás recuperarlo durante 5 días.')) {
         await setDoc(doc(db, 'configuracion', 'portadas'), { [tipo]: null }, { merge: true });
         renderPreview(`portada-${tipo}-img`, null, `portada-${tipo}-no`, `btn-del-portada-${tipo}`);
     }
@@ -768,7 +631,7 @@ window.guardarMenuDiaImg = async (prefix, base64) => {
     showStatus(`menudia-${tipo}-status`, 'Actualizado correctamente');
 };
 window.borrarMenuDiaImg = async (tipo) => {
-    if (confirm('¿Eliminar esta imagen?')) {
+    if (confirm('¿Enviar a la papelera? Podrás recuperarlo durante 5 días.')) {
         await setDoc(doc(db, 'configuracion', 'menuDia'), { [tipo]: null }, { merge: true });
         renderPreview(`menudia-${tipo}-img`, null, `menudia-${tipo}-no`, `btn-del-menudia-${tipo}`);
     }
@@ -796,6 +659,7 @@ window.guardarTextosMenuDia = async () => {
 };
 
 window.guardarQuienesSomos = async (prefix, base64) => {
+    base64 ||= pendingImage('qs');
     showStatus('qs-status', 'Guardando...');
     let updates = {
         quienesSomosHabilitado: document.getElementById('qs-habilitar').checked,
@@ -806,6 +670,7 @@ window.guardarQuienesSomos = async (prefix, base64) => {
     showStatus('qs-status', 'Actualizado correctamente');
 };
 window.guardarNuestraCarta = async (prefix, base64) => {
+    base64 ||= pendingImage('nc');
     showStatus('nc-status', 'Guardando...');
     let updates = {
         nuestraCartaHabilitado: document.getElementById('nc-habilitar').checked,
@@ -816,7 +681,7 @@ window.guardarNuestraCarta = async (prefix, base64) => {
     showStatus('nc-status', 'Actualizado correctamente');
 };
 window.borrarSeccionImagen = async (campo) => {
-    if (confirm('¿Eliminar esta imagen?')) {
+    if (confirm('¿Enviar a la papelera? Podrás recuperarlo durante 5 días.')) {
         let f = campo === 'quienesSomos' ? 'qs' : 'nc';
         await setDoc(doc(db, 'configuracion', 'imagenesSeccion'), { [campo + 'Img']: null }, { merge: true });
         renderPreview(`${f}-img-img`, null, `${f}-img-no`, `btn-del-${f}-img`);
@@ -875,6 +740,7 @@ function renderHistoriaForms() {
 }
 
 window.guardarBloqueHistoria = async (i) => {
+    if(pendingImage(`hist-img${i}`)){historiaData[`b${i}`] ||= {};historiaData[`b${i}`].img=pendingImage(`hist-img${i}`);}
     showStatus(`hist-${i}-status`, 'Guardando...');
     if (!historiaData[`b${i}`]) historiaData[`b${i}`] = {};
     historiaData[`b${i}`].tit = document.getElementById(`hist-tit${i}`).value;
@@ -898,7 +764,7 @@ window.guardarHistoriaImgSolo = async (idx, base64) => {
 };
 
 window.borrarHistoriaImg = async (i) => {
-    if (confirm('¿Eliminar esta imagen?')) {
+    if (confirm('¿Enviar a la papelera? Podrás recuperarlo durante 5 días.')) {
         if (historiaData[`b${i}`]) historiaData[`b${i}`].img = null;
         await setDoc(doc(db, 'configuracion', 'historia'), historiaData, { merge: true });
         renderPreview(`hist-img${i}-img`, null, `hist-img${i}-no`, `btn-del-hist-img${i}`);
@@ -913,15 +779,20 @@ window.cargarGaleria = async () => {
     if (docSnap.exists()) document.getElementById('galeria-habilitar').checked = docSnap.data().habilitado !== false;
 
     const cont = document.getElementById('galeria-contenedor');
-    const addBtn = `<div class="galeria-item galeria-add" onclick="document.getElementById('galeria-file').click()"><i class="fa-solid fa-plus" style="font-size:1.5rem; margin-bottom:5px;"></i> Agregar</div>`;
+    const addBtn = `<button type="button" class="galeria-item galeria-add" onclick="document.getElementById('galeria-file').click()">+ Agregar foto</button>`;
     cont.innerHTML = 'Cargando...';
     const snap = await getDocs(collection(db, 'galeria'));
-    cont.innerHTML = addBtn;
-    snap.forEach(d => {
+    cont.innerHTML = snap.size < 15 ? addBtn : '';
+    document.getElementById('galeria-capacidad').textContent = `${snap.size} de 15 fotos. Puedes agregar ${Math.max(0,15-snap.size)} más.`;
+    [...snap.docs].sort((a,b)=>(a.data().orden||a.data().ts||0)-(b.data().orden||b.data().ts||0)).forEach(d => {
         const item = document.createElement('div'); item.className = 'galeria-item';
         const image = document.createElement('img'); image.src = d.data().url; image.alt = 'Foto del local';
         const button = document.createElement('button'); button.type = 'button'; button.className = 'btn-delete-img'; button.setAttribute('aria-label', 'Eliminar foto'); button.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
         button.onclick = () => window.borrarGaleria(d.id); item.append(image, button); cont.append(item);
+        bindImageTools(image, `galeria-${d.id}`, 1, async (_prefix,b64)=>{await updateDoc(doc(db,'galeria',d.id),{url:b64});await cargarGaleria();});
+        const orderButton=document.createElement('button');orderButton.type='button';orderButton.className='content-action';orderButton.textContent='Mover al inicio';orderButton.onclick=async()=>{await updateDoc(doc(db,'galeria',d.id),{orden:Date.now()*-1});await cargarGaleria();};item.append(orderButton);
+        const describe=document.createElement('button');describe.type='button';describe.className='content-action';describe.textContent='Descripción';describe.onclick=async()=>{const value=prompt('Descripción accesible de la foto (hasta 200 caracteres):',d.data().descripcion||'Foto del local');if(value===null)return;if(value.length>200){showStatus('galeria-status','Usa hasta 200 caracteres.',true);return;}await updateDoc(doc(db,'galeria',d.id),{descripcion:value});await cargarGaleria();};item.append(describe);
+        const visibility=document.createElement('button');visibility.type='button';visibility.className='content-action';visibility.textContent=d.data().disponible===false?'Mostrar foto':'Ocultar foto';visibility.onclick=async()=>{await updateDoc(doc(db,'galeria',d.id),{disponible:d.data().disponible===false});await cargarGaleria();};item.append(visibility);
     });
 };
 
@@ -931,52 +802,29 @@ document.getElementById('galeria-habilitar').addEventListener('change', async (e
     showStatus('galeria-status', 'Actualizado correctamente');
 });
 
-window.subirMultiGaleria = async (input) => {
-    if (input.files.length === 0) return;
-
-    // Verificar límite de 8 imágenes
-    const snapActual = await getDocs(collection(db, 'galeria'));
-    const actuales = snapActual.size;
-    if (actuales >= 8) {
-        showStatus('galeria-status', 'Límite de 8 imágenes alcanzado. Elimina alguna antes de agregar.', true);
-        input.value = '';
-        return;
-    }
-
-    if (input.files.length === 1) {
-        showStatus('galeria-status', 'Procesando imagen...');
-        const b64_temp = await compressImage(input.files[0]);
-        const b64 = await openCropper(b64_temp, 4 / 3);
-        input.value = '';
-        if (b64) {
-            showStatus('galeria-status', 'Subiendo imagen...');
-            await addDoc(collection(db, 'galeria'), { url: b64, ts: Date.now() });
-            showStatus('galeria-status', 'Imagen agregada');
-            cargarGaleria();
-            cargarDashboard();
-        } else { showStatus('galeria-status', ''); }
-    } else {
-        const disponibles = 8 - actuales;
-        const archivos = [...input.files].slice(0, disponibles);
-        if (archivos.length < input.files.length) {
-            showStatus('galeria-status', `Solo se agregarán ${disponibles} imágenes (límite 8).`);
-        } else {
-            showStatus('galeria-status', 'Subiendo imágenes...');
-        }
-        for (let file of archivos) {
-            const b64 = await compressImage(file);
-            await addDoc(collection(db, 'galeria'), { url: b64, ts: Date.now() });
-        }
-        input.value = '';
-        showStatus('galeria-status', 'Imágenes agregadas');
-        cargarGaleria();
-        cargarDashboard();
-    }
+window.subirMultiGaleria = async input => {
+ const files=[...input.files];input.value='';if(!files.length)return;
+ const current=await getDocs(collection(db,'galeria'));
+ if(current.size>=15){showStatus('galeria-status','La galería ya tiene 15 fotos.',true);return;}
+ let added=0;
+ for(const [index,file] of files.slice(0,15-current.size).entries()) {
+  try{showStatus('galeria-status',`Revisando foto ${index+1} de ${Math.min(files.length,15-current.size)}…`);
+   const source=await prepareImage(file),image=await editImage(source,1,'galeria-new');
+   if(!image)continue;if(!confirm('¿Guardar esta foto en la galería?'))continue;
+   await addDoc(collection(db,'galeria'),{url:image,ts:Date.now(),orden:Date.now(),descripcion:'Foto del local'});added++;
+  }catch(error){showStatus('galeria-status',error.message,true);await cargarGaleria();return;}
+ }
+ await cargarGaleria();cargarDashboard();showStatus('galeria-status',`Se guardaron ${added} fotos. Las canceladas no se publicaron.`);
 };
 
 window.borrarGaleria = async (id) => {
-    if (confirm('¿Eliminar imagen de la galería?')) {
+    if (confirm('¿Enviar esta foto a la papelera? Podrás recuperarla durante 5 días.')) {
         await deleteDoc(doc(db, 'galeria', id));
         cargarGaleria();
     }
 };
+
+window.actualizarFotoPlato = image => {estadoPlatoImg.base64=image;document.getElementById('plato-img-current').src=image;document.getElementById('plato-preview-box').style.display='flex';showStatus('plato-status','Imagen lista. Recuerda guardar el plato.');document.dispatchEvent(new Event('plato-image-changed'));};
+initContentTools();
+
+window.verTodosLosPlatos=()=>{window.filtroSinFoto=false;renderListaPlatos(platosVisibles());};

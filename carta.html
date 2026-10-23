@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" style="background:#faf3e0">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Carta | La Tetera de Greda</title>
     <meta name="description" content="Carta completa de La Tetera de Greda. Platos típicos chilenos, carnes, del mar, postres y bebestibles en Villa Alemana.">
     <meta property="og:type" content="website">
-    <link rel="icon" href="logo tetera.png">
+    <link rel="icon" href="favicon-tetera.png">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -175,11 +175,12 @@
         }
     </style>
     <link rel="stylesheet" href="privacy.css">
+    <link rel="stylesheet" href="site-polish.css">
 </head>
 <body>
 
     <header class="hero" id="hero-carta">
-        <img src="logo tetera.png" alt="Logo La Tetera de Greda" class="hero-logo" onerror="this.style.display='none'">
+        <img src="logo-tetera.webp" alt="Logo La Tetera de Greda" class="hero-logo" onerror="this.style.display='none'">
         <h1>La Tetera de Greda</h1>
         <p class="hero-sub">Nuestra Carta Completa</p>
         <nav class="hero-nav">
@@ -263,6 +264,7 @@
 
     <script type="module">
         import { db } from './firebase-config.js';
+        import { renderFeatured } from './featured.js';
         import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // CACHÉ de portada: mostrar inmediatamente, actualizar en segundo plano
@@ -337,11 +339,12 @@
                     }
 
                     const imgHtml = img
-                        ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(p.nombre)}" class="plato-img">`
+                        ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(p.nombre)}" class="plato-img" width="800" height="600" decoding="async" loading="${grid.children.length < 2 ? 'eager' : 'lazy'}">`
                         : '';
 
                     const div = document.createElement('div');
                     div.className = `menu-item ${p.categoria} todos`;
+                    div.dataset.id = docSnap.id;
                     div.dataset.nombre = (p.nombre || '').toLowerCase();
                     div.dataset.desc = (p.descripcion || '').toLowerCase();
                     div.dataset.tags = ((p.etiquetas || []).join(' ')).toLowerCase();
@@ -358,6 +361,8 @@
                     todosLosPlatos.push(div);
                     div.classList.add('show');
                 });
+
+                renderFeatured(grid);
 
                 // Bebidas
                 const bebidasSnap = await getDocs(query(collection(db, 'bebidas'), orderBy('orden')));
@@ -474,5 +479,6 @@
         });
     </script>
     <script type="module" src="privacy.js"></script>
+    <script type="module" src="site-polish.js"></script>
 </body>
 </html>

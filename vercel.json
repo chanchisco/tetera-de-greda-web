@@ -9,6 +9,7 @@
       { "key": "Strict-Transport-Security", "value": "max-age=31536000" }
     ] },
     { "source": "/admin.html", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }, { "key": "Cache-Control", "value": "no-store" }] },
-    { "source": "/api/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }
+    { "source": "/api/contenido", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/api/gestion", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }
   ]
 }

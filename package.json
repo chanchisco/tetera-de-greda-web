@@ -9,6 +9,15 @@
     "admins:inventario": "node scripts/migrate-admins.mjs",
     "admins:importar": "node scripts/migrate-admins.mjs --apply"
   },
-  "engines": { "node": "22.x" },
-  "dependencies": { "firebase-admin": "^13.6.0" }
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "sharp": "^0.35.5"
+  }
 }

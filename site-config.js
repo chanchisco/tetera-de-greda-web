@@ -1,5 +1,8 @@
 // Configuración pública. Nunca añadir claves privadas o contraseñas aquí.
 export const siteConfig = {
+  publicOrigin: 'https://tetera-de-greda-web.vercel.app',
+  galleryLimit: 15,
+  trashDays: 5,
   legal: {
     published: false, // Cambiar a true SOLO al completar y validar los textos.
     responsible: '', rut: '', representative: '', address: '', email: '',
