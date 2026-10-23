@@ -28,7 +28,11 @@ loginForm.addEventListener('submit', async (e) => {
     const submit = loginForm.querySelector('button[type="submit"]');
     submit.disabled = true; loginError.textContent = 'Ingresando…';
     try {
-        await signInWithEmailAndPassword(auth, document.getElementById('login-email').value.trim(), document.getElementById('login-password').value);
+        const previousUid = auth.currentUser?.uid;
+        const credential = await signInWithEmailAndPassword(auth, document.getElementById('login-email').value.trim(), document.getElementById('login-password').value);
+        // Si sigue siendo la misma cuenta, Auth puede no emitir otro cambio de
+        // usuario. Reabrir la comprobación permite reintentar desde Ingresar.
+        if (previousUid === credential.user.uid) watchAccess(credential.user, initAdmin);
         document.getElementById('login-password').value = '';
     } catch(err) {
         if (err.code === 'auth/multi-factor-auth-required') {

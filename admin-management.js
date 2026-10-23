@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { doc, onSnapshot, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { sendPasswordResetEmail, signOut, getMultiFactorResolver, TotpMultiFactorGenerator, multiFactor, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification, reload } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { sendPasswordResetEmail, getMultiFactorResolver, TotpMultiFactorGenerator, multiFactor, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification, reload } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { siteConfig } from './site-config.js';
 
 const $ = id => document.getElementById(id);
@@ -58,8 +58,7 @@ export function watchAccess(user, start) {
   stopProfile?.(); const epoch = ++accessEpoch; currentProfile = null;
   $('gestion-nav').classList.add('hidden'); $('management-users').replaceChildren(); users = [];
   if (dialog.open) finishDialog(null);
-  if (!user) { $('access-signout').hidden = true; $('access-retry').hidden = true; return; }
-  $('access-signout').hidden = false; $('access-retry').hidden = false;
+  if (!user) return;
   $('login-error').textContent = 'Comprobando permisos…';
   let started = false;
   stopProfile = onSnapshot(doc(db, 'administradores', user.uid), async snap => {
@@ -106,8 +105,6 @@ export function watchAccess(user, start) {
     $('login-error').textContent = 'No se pudieron comprobar permisos. Verifica la conexión y la configuración de Firebase; luego reintenta.';
   });
 }
-$('access-signout').onclick = () => signOut(auth);
-$('access-retry').onclick = () => window.location.reload();
 
 async function recovery(email, id) {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { feedback(id, 'Escribe un correo válido en el campo Correo electrónico.', true); $('login-email').focus(); return; }
