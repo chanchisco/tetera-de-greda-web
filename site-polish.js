@@ -2,8 +2,10 @@ const search=document.querySelector('.search-bar-wrap');
 if(search){
  const wrap=document.createElement('div');wrap.className='carta-search-sticky';search.before(wrap);wrap.append(search);
  const field=search.querySelector('input');field?.setAttribute('aria-label','Buscar plato o ingrediente');
- const button=document.createElement('button');button.className='back-to-top';button.type='button';button.textContent='↑';button.setAttribute('aria-label','Volver al buscador de la carta');button.hidden=true;
- button.onclick=()=>{wrap.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});field?.focus({preventScroll:true});};document.body.append(button);
+ const button=document.createElement('button');button.className='back-to-top';button.type='button';
+ const icon=document.createElement('i');icon.className='fa-solid fa-angles-up';icon.setAttribute('aria-hidden','true');
+ button.append(icon,document.createTextNode('Volver arriba'));button.title='Volver al inicio de la carta y sus filtros';button.hidden=true;
+ button.onclick=()=>{const start=search.closest('.menu-section');const top=start?Math.max(0,start.getBoundingClientRect().top+window.scrollY):0;window.scrollTo({top,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});};document.body.append(button);
  const update=()=>button.hidden=window.scrollY<window.innerHeight;window.addEventListener('scroll',update,{passive:true});update();
 }
 // Carga anticipada por el navegador: las primeras tarjetas son inmediatas.

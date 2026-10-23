@@ -189,7 +189,8 @@
             <button class="nav-btn" data-page="portadas"><i class="fa-solid fa-image"></i> Portadas</button>
             <button class="nav-btn" data-page="menudia"><i class="fa-solid fa-calendar-day"></i> Menú Día</button>
             <button class="nav-btn" data-page="imagenes"><i class="fa-solid fa-photo-film"></i> Extras</button>
-            <button class="nav-btn" data-page="historial">Historial y papelera</button><button class="nav-btn" data-page="utilidades">Destacados y QR</button>
+            <button class="nav-btn" data-page="historial"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial y papelera</button>
+            <button class="nav-btn" data-page="utilidades"><i class="fa-solid fa-qrcode" aria-hidden="true"></i> QR de la carta</button>
             <button class="nav-btn hidden" data-page="gestion" id="gestion-nav"><i class="fa-solid fa-users-gear" aria-hidden="true"></i> Gestión</button>
         </nav>
 
@@ -458,6 +459,8 @@
 
             <!-- EXTRAS -->
             <div class="page" id="page-imagenes">
+                <div class="card"><h2><i class="fa-solid fa-star" aria-hidden="true"></i> Recomendados de la casa</h2><label><input type="checkbox" id="featured-enabled"> Mostrar destacados en la carta</label><p>Selecciona hasta tres platos distintos, en el orden en que aparecerán.</p><div id="featured-fields"></div><button type="button" id="save-featured" class="content-action">Guardar destacados</button><p id="featured-feedback" class="content-feedback" role="status"></p></div>
+
                 <div class="card">
                     <h2><i class="fa-solid fa-users"></i> Quiénes Somos (Inicio)</h2>
                     <div class="switch-container"><label class="switch"><input type="checkbox" id="qs-habilitar"><span class="slider"></span></label><span>Mostrar esta sección</span></div>
@@ -522,8 +525,8 @@
                     <div id="management-users" aria-busy="false"></div>
                 </div>
             </section>
-<section class="page" id="page-historial"><div class="card"><h2>Historial y papelera</h2><p>Hasta 5 versiones anteriores por elemento. La papelera permite recuperar durante 5 días.</p><div class="image-toolbar"><button type="button" id="refresh-content-history">Actualizar</button><button type="button" id="content-backup">Descargar respaldo de contenido</button></div><p id="history-feedback" class="content-feedback" role="status"></p><h3>Papelera</h3><div id="content-trash"></div><h3>Últimos cambios</h3><div id="content-history"></div></div></section>
-<section class="page" id="page-utilidades"><div class="card"><h2>Recomendados de la casa</h2><label><input type="checkbox" id="featured-enabled"> Mostrar destacados en la carta</label><p>Selecciona hasta tres platos distintos, en el orden en que aparecerán.</p><div id="featured-fields"></div><button type="button" id="save-featured" class="content-action">Guardar destacados</button><p id="featured-feedback" class="content-feedback" role="status"></p></div><div class="card"><h2>QR de la carta · en prueba</h2><p>Escanea y prueba una impresión antes de prepararlo para todas las mesas.</p><label for="qr-url">Dirección pública de la carta</label><input id="qr-url" type="url" readonly><div class="image-toolbar"><button type="button" id="generate-qr">Generar QR</button><button type="button" id="download-qr-svg" disabled>Descargar SVG</button><button type="button" id="download-qr-png" disabled>Descargar PNG</button><button type="button" id="print-qr" disabled>Imprimir</button></div><div id="qr-preview"></div><p id="qr-feedback" class="content-feedback" role="status"></p></div></section>
+<section class="page" id="page-historial"><div class="card"><h2><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial y papelera</h2><p>Hasta 5 versiones anteriores por elemento. La papelera permite recuperar durante 5 días.</p><div class="image-toolbar"><button type="button" id="refresh-content-history">Actualizar</button><button type="button" id="content-backup">Descargar respaldo de contenido</button></div><p id="history-feedback" class="content-feedback" role="status"></p><h3>Papelera</h3><div id="content-trash"></div><h3>Últimos cambios</h3><div id="content-history"></div></div></section>
+<section class="page" id="page-utilidades"><div class="card"><h2><i class="fa-solid fa-qrcode" aria-hidden="true"></i> QR de la carta · en prueba</h2><p>Escanea y prueba una impresión antes de prepararlo para todas las mesas.</p><label for="qr-url">Dirección pública de la carta</label><input id="qr-url" type="url" readonly><div class="image-toolbar"><button type="button" id="generate-qr">Generar QR</button><button type="button" id="download-qr-svg" disabled>Descargar SVG</button><button type="button" id="download-qr-png" disabled>Descargar PNG</button><button type="button" id="print-qr" disabled>Imprimir</button></div><div id="qr-preview"></div><p id="qr-feedback" class="content-feedback" role="status"></p></div></section>
         </div><!-- content -->
     </div><!-- main-layout -->
 </div><!-- panel-root -->
