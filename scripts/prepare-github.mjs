@@ -6,7 +6,7 @@ if(!/^(PARA_SUBIR_GITHUB_|ENTREGA_)[a-zA-Z0-9_-]+$/.test(destination)) throw new
 const rootFiles = [
   'index.html','carta.html','nosotros.html','admin.html','admin.js','admin-management.js','admin-management.css',
   'firebase-config.js','site-config.js','privacy.js','privacy.css','privacidad.html','cookies.html','aviso-legal.html',
-  'content-store.js','quota-errors.js','public-content.js','public-data-cache.js','public-data-model.js','content-client.js','content-tools.js','content-tools.css','image-editor.js','image-page-preview.js','site-polish.js','site-polish.css','featured.js',
+  'content-store.js','quota-errors.js','public-content.js','public-data-cache.js','public-data-model.js','content-client.js','content-tools.js','content-tools.css','image-editor.js','image-page-preview.js','social-links.js','site-polish.js','menu-social.css','site-polish.css','featured.js',
   'logo tetera.png','Google-Review-Emblem.png','platocualquera.jpg','seed-data.js',
   'package.json','package-lock.json','vercel.json','firebase.json','.firebaserc','firestore.rules','.gitignore','.env.example'
 ];
@@ -22,6 +22,8 @@ async function copySources(directory) {
   }
 }
 for (const directory of ['api','server','scripts','tests']) await copySources(directory);
+await mkdir(join(destination,'cloudflare'),{recursive:true});
+for(const file of ['adapter.js','app.js','firebase.js','firestore-rest.js','worker.js'])await copyFile(join('cloudflare',file),join(destination,'cloudflare',file));
 console.log('Carpeta limpia creada: ' + destination);
 console.log('Subir su contenido a la raíz de GitHub cuando se complete la configuración de Vercel.');
 console.log('No contiene sesiones, respaldos privados, claves de servicio, .env real, node_modules, dist o capturas.');

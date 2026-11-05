@@ -3,7 +3,7 @@
 import { readFile } from 'node:fs/promises';
 import { createPublicCatalogHandler } from '../server/public-catalog.js';
 const qaStats={publicRequests:0,publicDatabaseReads:0,contentWrites:0};
-const qaRecords={'platos/qa-plato':{nombre:'Plato de prueba',precio:'$9.000',descripcion:'Datos ficticios',orden:1,categoria:'fondos',imagenBase64:'/logo-tetera.webp'},'galeria/qa-foto':{url:'/logo-tetera.webp',ts:1},'configuracion/portadas':{inicio:'/logo-tetera.webp'},'configuracion/imagenesSeccion':{quienesSomosImg:'/logo-tetera.webp',quienesSomosTexto:'Vista de prueba'},'configuracion/historia':{b1:{img:'/logo-tetera.webp',tit:'Nuestra historia',txt:'Solo prueba'}}};
+const qaRecords={'bebidas/qa-cafe':{nombre:'Café de prueba',precio:'$2.000',subcategoria:'Café y Té',orden:1},'bebidas/qa-mojito':{nombre:'Mojito de prueba',precio:'$4.500',subcategoria:'Aperitivos y Cócteles',orden:2},'platos/qa-plato':{nombre:'Plato de prueba',precio:'$9.000',descripcion:'Datos ficticios',orden:1,categoria:'fondos',imagenBase64:'/logo-tetera.webp'},'galeria/qa-foto':{url:'/logo-tetera.webp',ts:1},'configuracion/portadas':{inicio:'/logo-tetera.webp'},'configuracion/imagenesSeccion':{quienesSomosImg:'/logo-tetera.webp',quienesSomosTexto:'Vista de prueba'},'configuracion/historia':{b1:{img:'/logo-tetera.webp',tit:'Nuestra historia',txt:'Solo prueba'}}};
 const qaSnapshot=path=>({id:path.split('/').at(-1),exists:!!qaRecords[path],data:()=>qaRecords[path]});
 const qaPublic=createPublicCatalogHandler({getDb:()=>({collection:name=>({get:async()=>{const docs=Object.keys(qaRecords).filter(path=>path.startsWith(name+'/')).map(qaSnapshot);qaStats.publicDatabaseReads+=Math.max(1,docs.length);return {docs};}}),doc:path=>({get:async()=>{qaStats.publicDatabaseReads++;return qaSnapshot(path);}})})});
 const users = [
@@ -13,7 +13,7 @@ const users = [
 const firebase = `export const auth={currentUser:{uid:'qa-owner',email:'dueno@example.test',emailVerified:true,getIdToken:async()=> 'qa-token',getIdTokenResult:async()=>({claims:{}})}}; export const db={};`;
 const firestore = `
 let serial=0;
-const records={ 'platos/qa-plato':{nombre:'Plato de prueba',precio:'$9.000',descripcion:'Datos ficticios',orden:1,categoria:'fondos',imagenBase64:'/logo-tetera.webp'},'galeria/qa-foto':{url:'/logo-tetera.webp',ts:1},'configuracion/portadas':{inicio:'/logo-tetera.webp'},'configuracion/imagenesSeccion':{quienesSomosImg:'/logo-tetera.webp',quienesSomosTexto:'Vista de prueba'},'configuracion/historia':{b1:{img:'/logo-tetera.webp',tit:'Nuestra historia',txt:'Solo prueba'}}};
+const records={'bebidas/qa-cafe':{nombre:'Café de prueba',precio:'$2.000',subcategoria:'Café y Té',orden:1},'bebidas/qa-mojito':{nombre:'Mojito de prueba',precio:'$4.500',subcategoria:'Aperitivos y Cócteles',orden:2}, 'platos/qa-plato':{nombre:'Plato de prueba',precio:'$9.000',descripcion:'Datos ficticios',orden:1,categoria:'fondos',imagenBase64:'/logo-tetera.webp'},'galeria/qa-foto':{url:'/logo-tetera.webp',ts:1},'configuracion/portadas':{inicio:'/logo-tetera.webp'},'configuracion/imagenesSeccion':{quienesSomosImg:'/logo-tetera.webp',quienesSomosTexto:'Vista de prueba'},'configuracion/historia':{b1:{img:'/logo-tetera.webp',tit:'Nuestra historia',txt:'Solo prueba'}}};
 export const doc=(db,...parts)=>({path:parts.length?parts.join('/'):db.path+'/qa-new-'+(++serial)});
 export const collection=doc;export const query=ref=>ref;export const orderBy=()=>null;
 const snapshot=path=>({ref:{path},id:path.split('/').at(-1),exists:()=>!!records[path],data:()=>records[path]});

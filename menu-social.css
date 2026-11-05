@@ -1,0 +1,8 @@
+:root{--menu-switch-gap:12px;--menu-switch-radius:24px;--menu-switch-ink:#401b0f;--menu-switch-paper:#faf3e0}
+.menu-kind-switch{display:flex;justify-content:center;gap:var(--menu-switch-gap);margin:0 auto 24px;max-width:520px}
+.menu-kind-btn{flex:1;min-height:48px;padding:10px 20px;border:2px solid var(--menu-switch-ink);border-radius:var(--menu-switch-radius);background:transparent;color:var(--menu-switch-ink);font:600 .95rem 'Poppins',sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:var(--menu-switch-gap)}
+.menu-kind-btn.active{background:var(--menu-switch-ink);color:white}.menu-kind-btn:hover{box-shadow:0 2px 8px #401b0f22}.menu-kind-btn:focus-visible{outline:3px solid #e58729;outline-offset:3px}
+#filtros-section[hidden],#menu-grid[hidden],#drinks-section[hidden],#drinks-section [hidden],.social-highlights [hidden],.contact-social-links [hidden]{display:none!important}
+.social-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));background:white}.social-highlights:has(.facebook-highlight[hidden]){grid-template-columns:1fr}
+.contact-social-links{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.contact-social-links .facebook-link{background:#1877f2}
+@media(max-width:768px){.social-highlights{grid-template-columns:1fr}.menu-kind-btn{padding:10px 12px;font-size:.875rem}}

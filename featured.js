@@ -7,7 +7,7 @@ export async function renderFeatured(grid){
   const heading=document.createElement('h2');heading.id='featured-heading';heading.textContent=value.titulo||'Recomendados de la casa';
   const cards=document.createElement('div');cards.className='featured-grid';
   for(const id of value.platos.slice(0,3)){const card=[...grid.children].find(item=>item.dataset.id===id);if(!card)continue;const clone=card.cloneNode(true);clone.className='menu-item show';const image=clone.querySelector('img');if(image)image.loading='eager';cards.append(clone);}
-  if(!cards.children.length)return;section.append(heading,cards);document.querySelector('.menu-section').before(section);
-  document.getElementById('carta-search')?.addEventListener('input',e=>section.hidden=!!e.target.value.trim());
+  if(!cards.children.length)return;section.append(heading,cards);document.querySelector('.menu-section').before(section);section.hidden=document.getElementById('menu-kind-bebidas')?.getAttribute('aria-pressed')==='true';
+  document.getElementById('carta-search')?.addEventListener('input',e=>section.hidden=document.getElementById('menu-kind-bebidas')?.getAttribute('aria-pressed')==='true'||!!e.target.value.trim());
  }catch{ /* La lista principal sigue funcionando si no carga este bloque opcional. */ }
 }

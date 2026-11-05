@@ -176,6 +176,7 @@
     </style>
     <link rel="stylesheet" href="privacy.css">
     <link rel="stylesheet" href="site-polish.css">
+    <link rel="stylesheet" href="menu-social.css">
 </head>
 <body>
 
@@ -194,6 +195,10 @@
     <section class="menu-section">
         <h2 class="section-title">Nuestra carta</h2>
 
+        <div class="menu-kind-switch" role="group" aria-label="Tipo de carta">
+            <button type="button" class="menu-kind-btn active" id="menu-kind-comidas" aria-pressed="true" aria-controls="menu-grid filtros-section" onclick="seleccionarCarta('comidas')"><i class="fa-solid fa-utensils" aria-hidden="true"></i> Comidas</button>
+            <button type="button" class="menu-kind-btn" id="menu-kind-bebidas" aria-pressed="false" aria-controls="drinks-section" onclick="seleccionarCarta('bebidas')"><i class="fa-solid fa-wine-glass" aria-hidden="true"></i> Bebestibles</button>
+        </div>
         <!-- BUSCADOR -->
         <div class="search-bar-wrap">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -210,14 +215,13 @@
             <button class="filter-btn" onclick="filterMenu('guarniciones', this)">Guarniciones</button>
             <button class="filter-btn" onclick="filterMenu('ninos', this)">Menú Niños</button>
             <button class="filter-btn" onclick="filterMenu('postres', this)">Postres</button>
-            <button class="filter-btn" onclick="filterMenu('bebestibles', this)">Bebestibles</button>
         </div>
 
         <div class="menu-grid" id="menu-grid">
             <p style="text-align:center; grid-column:1/-1; padding:40px 0; color:#999;">Cargando menú...</p>
         </div>
 
-        <div class="drinks-section" id="drinks-section">
+        <div class="drinks-section" id="drinks-section" hidden>
             <p style="text-align:center; color:#999;">Cargando bebestibles...</p>
         </div>
     </section>
@@ -231,9 +235,10 @@
                 <p><i class="fa-brands fa-whatsapp"></i> <a href="https://wa.me/56971482268">+569 7148 2268</a></p>
                 <p><i class="fa-solid fa-phone"></i> <a href="tel:322220409">32 322 0409</a></p>
                 <p style="margin-top: 15px;">¿Nos visitas? Etiquétanos en tus fotos y sé parte de la familia de La Tetera de Greda.</p>
-                <a href="https://www.instagram.com/lateteradegreda?igsh=MWE2cnlhZmY2NDV6aA==" target="_blank" class="instagram-link">
+                <div class="contact-social-links"><a href="https://www.instagram.com/lateteradegreda?igsh=MWE2cnlhZmY2NDV6aA==" target="_blank" class="instagram-link">
                     <i class="fa-brands fa-instagram"></i> Síguenos @lateteradegreda
                 </a>
+                <a class="instagram-link facebook-link" data-facebook hidden target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i> Síguenos en Facebook</a></div>
             </div>
             <div class="map-box">
                 <iframe title="Ubicación de La Tetera de Greda" hidden data-privacy-map="https://maps.google.com/maps?q=Santa%20Ana%2098,%20Villa%20Alemana,%20Chile&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
@@ -311,6 +316,8 @@
         // Estado global de platos para el buscador
         let todosLosPlatos = [];
         let categoriaActiva = 'todos';
+        let tipoCartaActiva = 'comidas';
+        const gruposDeBebidas = [];
 
         async function cargarCarta() {
             const grid = document.getElementById('menu-grid');
@@ -387,22 +394,44 @@
                     h3.className = 'drink-category-title';
                     h3.textContent = cat;
                     drinks.appendChild(h3);
+                    const group={heading:h3,items:[]};gruposDeBebidas.push(group);
                     porSubcategoria[cat].forEach(b => {
                         const item = document.createElement('div');
                         item.className = 'drink-list-item';
                         const tagsHtml = b.etiquetas && b.etiquetas.length
                             ? `<div class="drink-tags">${b.etiquetas.map(t => `<span class="item-tag">${escapeHtml(t)}</span>`).join('')}</div>` : '';
                         item.innerHTML = `<span class="drink-name">${escapeHtml(b.nombre)}${tagsHtml}</span><div class="drink-dots"></div><span class="drink-price">${escapeHtml(b.precio)}</span>`;
-                        drinks.appendChild(item);
+                        item.dataset.search=`${b.nombre||''} ${cat} ${(b.etiquetas||[]).join(' ')}`.toLowerCase();
+                        group.items.push(item);drinks.appendChild(item);
                     });
                 });
+                if(tipoCartaActiva==='bebidas')aplicarBebidas(document.getElementById('carta-search').value.toLowerCase().trim());
             } catch (err) {
                 console.error(err);
                 grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; color:#999;">No se pudo cargar el menú. Intenta recargar la página.</p>';
+                drinks.textContent='No se pudieron cargar los bebestibles. Intenta recargar la página.';
             }
         }
 
         cargarCarta();
+
+        window.seleccionarCarta = function(tipo){
+            tipoCartaActiva=tipo;
+            const bar=tipo==='bebidas';
+            for(const [id,active]of [['menu-kind-comidas',!bar],['menu-kind-bebidas',bar]]){const button=document.getElementById(id);button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));}
+            document.getElementById('filtros-section').hidden=bar;
+            document.getElementById('menu-grid').hidden=bar;
+            document.getElementById('menu-grid').style.display=bar?'none':'grid';
+            document.getElementById('drinks-section').hidden=!bar;
+            document.getElementById('drinks-section').style.display=bar?'block':'none';
+            const input=document.getElementById('carta-search');input.value='';input.placeholder=bar?'Buscar bebida o cóctel...':'Buscar plato o ingrediente...';input.setAttribute('aria-label',bar?'Buscar bebida o cóctel':'Buscar plato o ingrediente');document.getElementById('btn-clear-search').style.display='none';
+            if(bar)aplicarBebidas('');else aplicarFiltros(categoriaActiva,'');
+            const featured=document.querySelector('.featured-section');if(featured)featured.hidden=bar;
+        };
+        function aplicarBebidas(search){
+            let visible=0;for(const group of gruposDeBebidas){let count=0;for(const item of group.items){item.hidden=!!search&&!item.dataset.search.includes(search);if(!item.hidden)count++;}group.heading.hidden=count===0;visible+=count;}
+            document.getElementById('drinks-no-results')?.remove();if(search&&!visible){const note=document.createElement('p');note.id='drinks-no-results';note.className='no-results';note.setAttribute('role','status');note.textContent='No se encontraron bebestibles para esa búsqueda.';document.getElementById('drinks-section').append(note);}
+        }
 
         // Filtro de categorías
         window.filterMenu = function (category, btn) {
@@ -418,14 +447,9 @@
             const grid = document.getElementById('menu-grid');
             const drinks = document.getElementById('drinks-section');
 
-            if (category === 'bebestibles') {
-                grid.style.display = 'none';
-                drinks.style.display = 'block';
-            } else {
-                grid.style.display = 'grid';
-                drinks.style.display = 'none';
-                aplicarFiltros(category, '');
-            }
+            grid.style.display = 'grid';
+            drinks.style.display = 'none';
+            aplicarFiltros(category, '');
         };
 
         function aplicarFiltros(cat, search) {
@@ -454,7 +478,7 @@
         window.onSearch = function(val) {
             const clearBtn = document.getElementById('btn-clear-search');
             clearBtn.style.display = val ? 'block' : 'none';
-            if (categoriaActiva === 'bebestibles') return;
+            if(tipoCartaActiva==='bebidas'){aplicarBebidas(val.toLowerCase().trim());return;}
             aplicarFiltros(categoriaActiva, val.toLowerCase().trim());
         };
 
@@ -462,7 +486,7 @@
             const input = document.getElementById('carta-search');
             input.value = '';
             document.getElementById('btn-clear-search').style.display = 'none';
-            aplicarFiltros(categoriaActiva, '');
+            if(tipoCartaActiva==='bebidas')aplicarBebidas('');else aplicarFiltros(categoriaActiva, '');
         };
 
         // Modal Admin
@@ -480,5 +504,6 @@
     </script>
     <script type="module" src="privacy.js"></script>
     <script type="module" src="site-polish.js"></script>
+    <script type="module" src="social-links.js"></script>
 </body>
 </html>

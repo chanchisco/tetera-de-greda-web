@@ -1,6 +1,7 @@
 // Configuración pública. Nunca añadir claves privadas o contraseñas aquí.
 export const siteConfig = {
   publicOrigin: 'https://tetera-de-greda-web.vercel.app',
+  social: { facebook: 'https://web.facebook.com/RestobarLateteradegreda' },
   galleryLimit: 15,
   trashDays: 5,
   legal: {
