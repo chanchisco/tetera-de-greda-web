@@ -1,6 +1,11 @@
 // Simulación local exclusivamente para revisar el UI sin credenciales ni Firebase.
 // Este archivo y sus rutas NO forman parte de dist/ ni del despliegue.
 import { readFile } from 'node:fs/promises';
+import { createPublicCatalogHandler } from '../server/public-catalog.js';
+const qaStats={publicRequests:0,publicDatabaseReads:0,contentWrites:0};
+const qaRecords={'platos/qa-plato':{nombre:'Plato de prueba',precio:'$9.000',descripcion:'Datos ficticios',orden:1,categoria:'fondos',imagenBase64:'/logo-tetera.webp'},'galeria/qa-foto':{url:'/logo-tetera.webp',ts:1},'configuracion/portadas':{inicio:'/logo-tetera.webp'},'configuracion/imagenesSeccion':{quienesSomosImg:'/logo-tetera.webp',quienesSomosTexto:'Vista de prueba'},'configuracion/historia':{b1:{img:'/logo-tetera.webp',tit:'Nuestra historia',txt:'Solo prueba'}}};
+const qaSnapshot=path=>({id:path.split('/').at(-1),exists:!!qaRecords[path],data:()=>qaRecords[path]});
+const qaPublic=createPublicCatalogHandler({getDb:()=>({collection:name=>({get:async()=>{const docs=Object.keys(qaRecords).filter(path=>path.startsWith(name+'/')).map(qaSnapshot);qaStats.publicDatabaseReads+=Math.max(1,docs.length);return {docs};}}),doc:path=>({get:async()=>{qaStats.publicDatabaseReads++;return qaSnapshot(path);}})})});
 const users = [
   { uid: 'qa-owner', email: 'dueno@example.test', rol: 'completo', activo: true, invitacionEnviada: true },
   { uid: 'qa-editor', email: 'contenido@example.test', rol: 'contenido', activo: true, invitacionEnviada: true }
@@ -12,8 +17,8 @@ const records={ 'platos/qa-plato':{nombre:'Plato de prueba',precio:'$9.000',desc
 export const doc=(db,...parts)=>({path:parts.length?parts.join('/'):db.path+'/qa-new-'+(++serial)});
 export const collection=doc;export const query=ref=>ref;export const orderBy=()=>null;
 const snapshot=path=>({ref:{path},id:path.split('/').at(-1),exists:()=>!!records[path],data:()=>records[path]});
-export const getDoc=async ref=>snapshot(ref.path);
-export const getDocs=async ref=>{const docs=Object.keys(records).filter(path=>path.startsWith(ref.path+'/')).map(snapshot);return{docs,size:docs.length,empty:!docs.length,forEach:fn=>docs.forEach(fn)}};
+export const getDoc=async ref=>{document.documentElement.dataset.qaDocReads=String(Number(document.documentElement.dataset.qaDocReads||0)+1);return snapshot(ref.path);};
+export const getDocs=async ref=>{document.documentElement.dataset.qaListReads=String(Number(document.documentElement.dataset.qaListReads||0)+1);const docs=Object.keys(records).filter(path=>path.startsWith(ref.path+'/')).map(snapshot);return{docs,size:docs.length,empty:!docs.length,forEach:fn=>docs.forEach(fn)}};
 export const onSnapshot=(ref,next)=>{queueMicrotask(()=>next({data:()=>({activo:true,rol:'completo'})}));return()=>{}};
 export const addDoc=async()=>{},setDoc=async()=>{},deleteDoc=async()=>{},updateDoc=async()=>{};
 `;
@@ -26,10 +31,12 @@ export const EmailAuthProvider={credential:()=>({})};`;
 
 export async function qaResponse(req, res) {
   const path = new URL(req.url, 'http://localhost').pathname;
+  if(process.env.TETERA_QA==='1'&&path==='/api/publico'){qaStats.publicRequests++;res.status=code=>{res.statusCode=code;return res;};res.json=value=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(value));};await qaPublic(req,res);return true;}
+  if(path==='/__qa/stats'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(qaStats));return true;}
   if (!path.startsWith('/__qa/')) return false;
   if (path === '/__qa/api/contenido') {
     res.setHeader('Content-Type','application/json');
-    if(req.method==='POST'){let body='';for await(const chunk of req)body+=chunk;const data=JSON.parse(body);res.end(JSON.stringify({revision:(data.revision||0)+1,data:data.data,message:'Simulación local: no se modificó Firebase.'}));}
+    if(req.method==='POST'){let body='';for await(const chunk of req)body+=chunk;const data=JSON.parse(body);qaStats.contentWrites++;const revision=(data.revision||0)+1;const value=data.action==='delete'?null:{...(data.merge?qaRecords[data.path]:{}),...data.data,_revision:revision};if(value)qaRecords[data.path]=value;else delete qaRecords[data.path];res.end(JSON.stringify({revision,data:value,message:'Simulación local: no se modificó Firebase.'}));}
     else res.end(JSON.stringify({items:[],galleryLimit:15,trashDays:5}));return true;
   }
   if (path === '/__qa/api/gestion') {
@@ -42,7 +49,7 @@ export async function qaResponse(req, res) {
   const fixtures = { '/__qa/firebase-config.js':firebase, '/__qa/firestore.js':firestore, '/__qa/auth.js':auth };
   if (fixtures[path]) { res.end(fixtures[path]); return true; }
   const name = path.slice('/__qa/'.length);
-  if (!['admin.html','admin.js','admin-management.js','admin-management.css','site-config.js','logo tetera.png','content-client.js','content-tools.js','image-editor.js','image-page-preview.js','content-tools.css','qr-code.js','logo-tetera.webp','favicon-tetera.png'].includes(decodeURIComponent(name))) { res.writeHead(404).end(); return true; }
+  if (!['admin.html','admin.js','admin-management.js','admin-management.css','site-config.js','logo tetera.png','content-store.js','public-data-cache.js','public-data-model.js','quota-errors.js','content-client.js','content-tools.js','image-editor.js','image-page-preview.js','content-tools.css','qr-code.js','logo-tetera.webp','favicon-tetera.png'].includes(decodeURIComponent(name))) { res.writeHead(404).end(); return true; }
   const file = await readFile(`dist/${decodeURIComponent(name)}`);
   if (name.endsWith('.png')||name.endsWith('.webp')) { res.end(file); return true; }
   let content = file.toString();

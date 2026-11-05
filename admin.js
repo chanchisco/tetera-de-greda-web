@@ -1,6 +1,8 @@
+import { planOrderUpdates } from './content-store.js';
 import { addDoc,getDocs,setDoc,deleteDoc,updateDoc,getDoc,pinRevision,unpinRevision } from './content-client.js';
 import { editImage,prepareImage } from './image-editor.js';
 import { initContentTools,stageImage,bindImageTools,updateMetrics,pendingImage,canReplaceForm } from './content-tools.js';
+import { readableError } from './quota-errors.js';
 import { db, auth } from './firebase-config.js';
 import { collection, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -51,7 +53,7 @@ function showStatus(elemId, msg, isError = false) {
     if (!el) { console.warn('showStatus: elemento no encontrado:', elemId); return; }
     el.textContent = msg;
     el.className = 'status-msg ' + (isError ? 'status-err' : 'status-ok');
-    setTimeout(() => { if(el) el.innerHTML = ''; }, 3500);
+    if(!isError)setTimeout(() => { if(el.textContent===msg)el.textContent=''; }, 3500);
 }
 
 function scrollToTop() {
@@ -62,23 +64,16 @@ function scrollToTop() {
 }
 
 function initAdmin() {
-    cargarDashboard();
-    cargarPlatos();
-    cargarBebidas();
-    cargarConfiguracionGeneral();
-    cargarTextosMenuDia();
-    cargarMenuDiaImgs();
-    cargarHistoria();
-    cargarGaleria();
+    Promise.allSettled([cargarDashboard(),cargarPlatos(),cargarBebidas(),cargarConfiguracionGeneral(),cargarTextosMenuDia(),cargarMenuDiaImgs(),cargarHistoria(),cargarGaleria()]).then(results=>{const failed=results.find(result=>result.status==='rejected');if(failed)showStatus('content-global-status',readableError(failed.reason),true);});
 }
 
 /* Dashboard stats */
 async function cargarDashboard() {
     try {
         const [platosSnap, bebidasSnap, galeriaSnap] = await Promise.all([
-            getDocs(collection(db, 'platos')),
-            getDocs(collection(db, 'bebidas')),
-            getDocs(collection(db, 'galeria'))
+            getDocs(collection(db, 'platos'),{preferCache:true}),
+            getDocs(collection(db, 'bebidas'),{preferCache:true}),
+            getDocs(collection(db, 'galeria'),{preferCache:true})
         ]);
         const dp = document.getElementById('dash-platos');
         const db2 = document.getElementById('dash-bebidas');
@@ -98,6 +93,9 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.add('active');
         document.getElementById(`page-${btn.dataset.page}`).classList.add('active');
         scrollToTop();
+        if(btn.dataset.page==='platos')cargarPlatos({preferCache:false}).catch(e=>showStatus('plato-status',readableError(e),true));
+        if(btn.dataset.page==='imagenes')cargarGaleria({preferCache:false}).catch(e=>showStatus('galeria-status',readableError(e),true));
+        if(btn.dataset.page==='bebidas')cargarBebidas({preferCache:false}).catch(e=>showStatus('bebida-status',readableError(e),true));
     });
 });
 
@@ -228,7 +226,7 @@ platoForm.addEventListener('submit', async (e) => {
         limpiarPlatoForm();
         cargarPlatos();
         cargarDashboard();
-    } catch (e) { showStatus('plato-status', 'Error al guardar', true); }
+    } catch (e) { showStatus('plato-status', readableError(e,'Error al guardar'), true); }
     btnSubmit.disabled = false; btnSubmit.innerHTML = `Guardar`;
 });
 
@@ -301,23 +299,16 @@ function platosVisibles() {
     return arr;
 }
 
-async function cargarPlatos() {
+async function cargarPlatos(options={preferCache:true}) {
     const lista = document.getElementById('platos-lista');
     lista.innerHTML = '<p style="color:#aaa;">Cargando...</p>';
     try {
-        const snap = await getDocs(query(collection(db, 'platos'), orderBy('orden')));
+        const snap = await getDocs(collection(db, 'platos'),options);
         _todosLosPlatos = [];
         snap.forEach(docSnap => {
             _todosLosPlatos.push({ ...docSnap.data(), id: docSnap.id });
         });
-    } catch(e) {
-        // Si no hay índice de 'orden', cargar sin ordenar
-        const snap = await getDocs(collection(db, 'platos'));
-        _todosLosPlatos = [];
-        snap.forEach(docSnap => {
-            _todosLosPlatos.push({ ...docSnap.data(), id: docSnap.id });
-        });
-    }
+    } catch(e) { lista.textContent=readableError(e);return; }
     renderCategoryTabs();
     renderListaPlatos(platosVisibles());
 }
@@ -389,37 +380,16 @@ async function guardarNuevoOrdenPlatos() {
     const rows = document.querySelectorAll('#platos-lista .item-row');
     const idsNuevoOrden = [...rows].map(r => r.dataset.id);
 
-    // Obtener los valores de 'orden' actuales de las filas visibles (en su orden previo)
-    const platosEnVista = idsNuevoOrden
-        .map(id => _todosLosPlatos.find(p => p.id === id))
-        .filter(Boolean);
+    const updates=planOrderUpdates(_todosLosPlatos,idsNuevoOrden);
+    if(!updates.length)return;
+    showStatus('platos-status','Guardando orden...');
+    try{
+        // Secuencial: las transacciones comparten un bloqueo de edición. Ejecutarlas
+        // juntas provoca conflictos, reintentos y lecturas innecesarias.
+        for(const {id,orden}of updates){await updateDoc(doc(db,'platos',id),{orden});const plato=_todosLosPlatos.find(p=>p.id===id);if(plato)plato.orden=orden;}
+        showStatus('platos-status','✓ Orden guardado');
+    }catch(error){showStatus('platos-status',readableError(error,'No se pudo completar el orden. Revisa los cambios guardados antes de reintentar.'),true);}
 
-    // Repartir los mismos valores de orden entre las nuevas posiciones
-    // (así otras categorías no se ven afectadas)
-    const ordenesActuales = platosEnVista.map(p => p.orden ?? Date.now()).sort((a, b) => a - b);
-
-    // Si todos los valores son iguales o hay duplicados, generar nuevos
-    const distintos = new Set(ordenesActuales).size === ordenesActuales.length;
-    const valoresParaAsignar = distintos
-        ? ordenesActuales
-        : idsNuevoOrden.map((_, i) => Date.now() + i * 100);
-
-    showStatus('platos-status', 'Guardando orden...');
-    const updates = [];
-    idsNuevoOrden.forEach((id, i) => {
-        const plato = _todosLosPlatos.find(p => p.id === id);
-        if (!plato) return;
-        const nuevoOrden = valoresParaAsignar[i];
-        plato.orden = nuevoOrden; // actualizar en memoria
-        updates.push(updateDoc(doc(db, 'platos', id), { orden: nuevoOrden }));
-    });
-
-    try {
-        await Promise.all(updates);
-        showStatus('platos-status', '✓ Orden guardado');
-    } catch(e) {
-        showStatus('platos-status', 'Error al guardar orden', true);
-    }
 }
 
 // Búsqueda: deshabilita drag cuando hay texto (para no confundir orden)
@@ -448,7 +418,7 @@ window.borrarPlato = async (id) => {
 
 window.editarPlato = async (id) => {
     if(!canReplaceForm('plato-form'))return;
-    const docSnap = await getDoc(doc(db, 'platos', id));
+    const docSnap = await getDoc(doc(db, 'platos', id),{fresh:true});
     unpinRevision('platos/'+id);pinRevision('platos/'+id,docSnap.data()?._revision||0);
     if (docSnap.exists()) {
         const d = docSnap.data();
@@ -517,10 +487,10 @@ document.getElementById('bebida-cancel').addEventListener('click', () => {
     document.querySelectorAll('.bebida-etiqueta').forEach(cb => cb.checked = false);
 });
 
-async function cargarBebidas() {
+async function cargarBebidas(options={preferCache:true}) {
     const lista = document.getElementById('bebidas-lista');
     lista.innerHTML = 'Cargando...';
-    const snap = await getDocs(query(collection(db, 'bebidas'), orderBy('orden')));
+    const snap = await getDocs(collection(db, 'bebidas'),options);
     _todasLasBebidas = [];
     snap.forEach(docSnap => {
         _todasLasBebidas.push({ ...docSnap.data(), id: docSnap.id });
@@ -558,7 +528,7 @@ window.filtrarListaBebidas = function() {
 window.borrarBebida = async (id) => { if (confirm('¿Enviar a la papelera? Podrás recuperarlo durante 5 días.')) { await deleteDoc(doc(db, 'bebidas', id)); cargarBebidas(); cargarDashboard(); } };
 window.editarBebida = async (id) => {
     if(!canReplaceForm('bebida-form'))return;
-    const docSnap = await getDoc(doc(db, 'bebidas', id));
+    const docSnap = await getDoc(doc(db, 'bebidas', id),{fresh:true});
     unpinRevision('bebidas/'+id);pinRevision('bebidas/'+id,docSnap.data()?._revision||0);
     if (docSnap.exists()) {
         const d = docSnap.data();
@@ -577,9 +547,9 @@ window.editarBebida = async (id) => {
 /* ============================
    CONFIGURACIÓN GENERAL
 ============================ */
-window.cargarConfiguracionGeneral = async () => {
-    window.recargarPortadas();
-    const secciones = await getDoc(doc(db, 'configuracion', 'imagenesSeccion'));
+window.cargarConfiguracionGeneral = async (options={}) => {
+    await window.recargarPortadas(options);
+    const secciones = await getDoc(doc(db, 'configuracion', 'imagenesSeccion'),options);
     if (secciones.exists()) {
         const s = secciones.data();
         document.getElementById('qs-habilitar').checked = s.quienesSomosHabilitado !== false;
@@ -591,8 +561,8 @@ window.cargarConfiguracionGeneral = async () => {
     }
 };
 
-window.recargarPortadas = async () => {
-    const portadas = await getDoc(doc(db, 'configuracion', 'portadas'));
+window.recargarPortadas = async (options={}) => {
+    const portadas = await getDoc(doc(db, 'configuracion', 'portadas'),options);
     if (portadas.exists()) {
         const p = portadas.data();
         renderPreview('portada-inicio-img', p.inicio, 'portada-inicio-no', 'btn-del-portada-inicio');
@@ -615,8 +585,8 @@ window.borrarPortada = async (tipo) => {
     }
 };
 
-window.cargarMenuDiaImgs = async () => {
-    const menudia = await getDoc(doc(db, 'configuracion', 'menuDia'));
+window.cargarMenuDiaImgs = async (options={}) => {
+    const menudia = await getDoc(doc(db, 'configuracion', 'menuDia'),options);
     if (menudia.exists()) {
         const m = menudia.data();
         renderPreview('menudia-img1-img', m.img1, 'menudia-img1-no', 'btn-del-menudia-img1');
@@ -637,8 +607,8 @@ window.borrarMenuDiaImg = async (tipo) => {
     }
 };
 
-window.cargarTextosMenuDia = async () => {
-    const menudia = await getDoc(doc(db, 'configuracion', 'menuDia'));
+window.cargarTextosMenuDia = async (options={}) => {
+    const menudia = await getDoc(doc(db, 'configuracion', 'menuDia'),options);
     if (menudia.exists()) {
         const m = menudia.data();
         document.getElementById('md-incluye').value = m.incluye || '';
@@ -693,8 +663,8 @@ window.borrarSeccionImagen = async (campo) => {
 ============================ */
 let historiaData = {};
 
-window.cargarHistoria = async () => {
-    const docSnap = await getDoc(doc(db, 'configuracion', 'historia'));
+window.cargarHistoria = async (options={}) => {
+    const docSnap = await getDoc(doc(db, 'configuracion', 'historia'),options);
     historiaData = docSnap.exists() ? docSnap.data() : { b1: {}, b2: {}, b3: {} };
     renderHistoriaForms();
 };
@@ -774,14 +744,14 @@ window.borrarHistoriaImg = async (i) => {
 /* ============================
    GALERIA NUESTRO ESPACIO
 ============================ */
-window.cargarGaleria = async () => {
+window.cargarGaleria = async (options={preferCache:true}) => {
     const docSnap = await getDoc(doc(db, 'configuracion', 'galeriaOpciones'));
     if (docSnap.exists()) document.getElementById('galeria-habilitar').checked = docSnap.data().habilitado !== false;
 
     const cont = document.getElementById('galeria-contenedor');
     const addBtn = `<button type="button" class="galeria-item galeria-add" onclick="document.getElementById('galeria-file').click()">+ Agregar foto</button>`;
     cont.innerHTML = 'Cargando...';
-    const snap = await getDocs(collection(db, 'galeria'));
+    const snap = await getDocs(collection(db, 'galeria'),options);
     cont.innerHTML = snap.size < 15 ? addBtn : '';
     document.getElementById('galeria-capacidad').textContent = `${snap.size} de 15 fotos. Puedes agregar ${Math.max(0,15-snap.size)} más.`;
     [...snap.docs].sort((a,b)=>(a.data().orden||a.data().ts||0)-(b.data().orden||b.data().ts||0)).forEach(d => {

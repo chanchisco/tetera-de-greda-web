@@ -263,9 +263,9 @@
     </div>
 
     <script type="module">
-        import { db } from './firebase-config.js';
+        
         import { renderFeatured } from './featured.js';
-        import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { db, collection, getDocs, query, orderBy, doc, getDoc } from './public-content.js';
 
         // CACHÉ de portada: mostrar inmediatamente, actualizar en segundo plano
         (function() {

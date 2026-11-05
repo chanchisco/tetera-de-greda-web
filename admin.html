@@ -392,21 +392,21 @@
                             <div class="portada-info"><p>Inicio</p></div>
                             <div class="preview-box"><img id="portada-inicio-img" class="hidden"><div class="no-img-text" id="portada-inicio-no">Sin imagen</div><button class="btn-delete-img hidden" id="btn-del-portada-inicio" onclick="borrarPortada('inicio')"><i class="fa-solid fa-trash"></i></button></div>
                             <input type="file" id="portada-inicio-file" accept="image/*" onchange="recortarYGuardar('portada-inicio', this, 16/9, guardarPortada)">
-                            <div style="display:flex; margin-top:8px;"><button class="btn-primary" style="flex:1;" onclick="recargarPortadas()">Restaurar</button></div>
+                            <div style="display:flex; margin-top:8px;"><button class="btn-primary" style="flex:1;" onclick="recargarPortadas({fresh:true})">Restaurar</button></div>
                             <p id="portada-inicio-status" class="status-msg"></p>
                         </div>
                         <div class="portada-card">
                             <div class="portada-info"><p>Nosotros</p></div>
                             <div class="preview-box"><img id="portada-nosotros-img" class="hidden"><div class="no-img-text" id="portada-nosotros-no">Sin imagen</div><button class="btn-delete-img hidden" id="btn-del-portada-nosotros" onclick="borrarPortada('nosotros')"><i class="fa-solid fa-trash"></i></button></div>
                             <input type="file" id="portada-nosotros-file" accept="image/*" onchange="recortarYGuardar('portada-nosotros', this, 16/9, guardarPortada)">
-                            <div style="display:flex; margin-top:8px;"><button class="btn-primary" style="flex:1;" onclick="recargarPortadas()">Restaurar</button></div>
+                            <div style="display:flex; margin-top:8px;"><button class="btn-primary" style="flex:1;" onclick="recargarPortadas({fresh:true})">Restaurar</button></div>
                             <p id="portada-nosotros-status" class="status-msg"></p>
                         </div>
                         <div class="portada-card">
                             <div class="portada-info"><p>La Carta</p></div>
                             <div class="preview-box"><img id="portada-carta-img" class="hidden"><div class="no-img-text" id="portada-carta-no">Sin imagen</div><button class="btn-delete-img hidden" id="btn-del-portada-carta" onclick="borrarPortada('carta')"><i class="fa-solid fa-trash"></i></button></div>
                             <input type="file" id="portada-carta-file" accept="image/*" onchange="recortarYGuardar('portada-carta', this, 16/9, guardarPortada)">
-                            <div style="display:flex; margin-top:8px;"><button class="btn-primary" style="flex:1;" onclick="recargarPortadas()">Restaurar</button></div>
+                            <div style="display:flex; margin-top:8px;"><button class="btn-primary" style="flex:1;" onclick="recargarPortadas({fresh:true})">Restaurar</button></div>
                             <p id="portada-carta-status" class="status-msg"></p>
                         </div>
                     </div>
@@ -435,7 +435,7 @@
                     </div>
                     <div style="margin-top:10px; display:flex; gap:8px;">
                         <button class="btn-primary" onclick="guardarTextosMenuDia()">Guardar Textos</button>
-                        <button class="btn-secondary" onclick="cargarTextosMenuDia()">Restaurar</button>
+                        <button class="btn-secondary" onclick="cargarTextosMenuDia({fresh:true})">Restaurar</button>
                     </div>
                     <p id="md-txt-status" class="status-msg"></p>
                 </div>
@@ -447,14 +447,14 @@
                             <div class="portada-info"><p>Imagen Superior</p></div>
                             <div class="preview-box" style="height:180px;"><img id="menudia-img1-img" class="hidden"><div class="no-img-text" id="menudia-img1-no">Sin imagen</div><button class="btn-delete-img hidden" id="btn-del-menudia-img1" onclick="borrarMenuDiaImg('img1')"><i class="fa-solid fa-trash"></i></button></div>
                             <input type="file" id="menudia-img1-file" accept="image/*" onchange="recortarYGuardar('menudia-img1', this, 4/3, guardarMenuDiaImg)">
-                            <div style="display:flex; margin-top:8px;"><button class="btn-primary" style="flex:1;" onclick="cargarMenuDiaImgs()">Restaurar</button></div>
+                            <div style="display:flex; margin-top:8px;"><button class="btn-primary" style="flex:1;" onclick="cargarMenuDiaImgs({fresh:true})">Restaurar</button></div>
                             <p id="menudia-img1-status" class="status-msg"></p>
                         </div>
                         <div class="portada-card">
                             <div class="portada-info"><p>Imagen Inferior</p></div>
                             <div class="preview-box" style="height:180px;"><img id="menudia-img2-img" class="hidden"><div class="no-img-text" id="menudia-img2-no">Sin imagen</div><button class="btn-delete-img hidden" id="btn-del-menudia-img2" onclick="borrarMenuDiaImg('img2')"><i class="fa-solid fa-trash"></i></button></div>
                             <input type="file" id="menudia-img2-file" accept="image/*" onchange="recortarYGuardar('menudia-img2', this, 4/3, guardarMenuDiaImg)">
-                            <div style="display:flex; margin-top:8px;"><button class="btn-primary" style="flex:1;" onclick="cargarMenuDiaImgs()">Restaurar</button></div>
+                            <div style="display:flex; margin-top:8px;"><button class="btn-primary" style="flex:1;" onclick="cargarMenuDiaImgs({fresh:true})">Restaurar</button></div>
                             <p id="menudia-img2-status" class="status-msg"></p>
                         </div>
                     </div>
@@ -472,7 +472,7 @@
                     <div class="preview-box" style="height:150px; max-width:400px;"><img id="qs-img-img" class="hidden"><div class="no-img-text" id="qs-img-no">Sin imagen</div><button class="btn-delete-img hidden" id="btn-del-qs-img" onclick="borrarSeccionImagen('quienesSomos')"><i class="fa-solid fa-trash"></i></button></div>
                     <input type="file" id="qs-img-file" accept="image/*" style="max-width:400px;" onchange="recortarYGuardar('qs', this, 4/3, guardarQuienesSomos)">
                     <label>Texto descriptivo</label><textarea id="qs-texto" rows="4"></textarea>
-                    <div style="margin-top:10px; display:flex; gap:8px;"><button class="btn-primary" onclick="guardarQuienesSomos()">Guardar</button><button class="btn-secondary" onclick="cargarConfiguracionGeneral()">Restaurar</button></div>
+                    <div style="margin-top:10px; display:flex; gap:8px;"><button class="btn-primary" onclick="guardarQuienesSomos()">Guardar</button><button class="btn-secondary" onclick="cargarConfiguracionGeneral({fresh:true})">Restaurar</button></div>
                     <p id="qs-status" class="status-msg"></p>
                 </div>
 
@@ -483,7 +483,7 @@
                     <label>Imagen decorativa (sino usa fotos al azar)</label>
                     <div class="preview-box" style="height:150px; max-width:400px;"><img id="nc-img-img" class="hidden"><div class="no-img-text" id="nc-img-no">Sin imagen</div><button class="btn-delete-img hidden" id="btn-del-nc-img" onclick="borrarSeccionImagen('nuestraCarta')"><i class="fa-solid fa-trash"></i></button></div>
                     <input type="file" id="nc-img-file" accept="image/*" style="max-width:400px;" onchange="recortarYGuardar('nc', this, 4/3, guardarNuestraCarta)">
-                    <div style="margin-top:10px; display:flex; gap:8px;"><button class="btn-primary" onclick="guardarNuestraCarta()">Guardar</button><button class="btn-secondary" onclick="cargarConfiguracionGeneral()">Restaurar</button></div>
+                    <div style="margin-top:10px; display:flex; gap:8px;"><button class="btn-primary" onclick="guardarNuestraCarta()">Guardar</button><button class="btn-secondary" onclick="cargarConfiguracionGeneral({fresh:true})">Restaurar</button></div>
                     <p id="nc-status" class="status-msg"></p>
                 </div>
 

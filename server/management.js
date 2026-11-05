@@ -1,3 +1,4 @@
+import { isQuotaError,QUOTA_MESSAGE } from '../quota-errors.js';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { ApiError, requireAdmin, requireRecentLogin, validateChange, validateEmail } from './policy.js';
 const actions = new Set(['crear', 'permiso', 'estado', 'eliminar', 'recuperar']);
@@ -107,6 +108,7 @@ export function createManagementHandler({ getServices, sendRecovery, origin, now
       await auditRef.update({ resultado: 'completado' });
       return res.status(200).json({ message: action === 'eliminar' ? 'Cuenta eliminada.' : 'Permisos actualizados.' });
     } catch (error) {
+      if(isQuotaError(error)){res.setHeader('Retry-After','120');return res.status(503).json({code:'resource-exhausted',message:QUOTA_MESSAGE});}
       const known = { 'auth/email-already-exists': 'Ese correo ya existe. Revisa la lista o el inventario de migración.', 'auth/invalid-email': 'El correo no es válido.' };
       return res.status(error.status || (known[error.code] ? 409 : 500)).json({ message: known[error.code] || (error.status ? error.message : 'No se pudo completar la operación. Reintenta; si persiste, revisa la configuración del servidor.') });
     }

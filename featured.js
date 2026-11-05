@@ -1,5 +1,4 @@
-import { db } from './firebase-config.js';
-import { doc,getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { db,doc,getDoc } from './public-content.js';
 export async function renderFeatured(grid){
  try{
   const value=(await getDoc(doc(db,'configuracion','destacados'))).data();if(!value?.habilitado||!Array.isArray(value.platos))return;

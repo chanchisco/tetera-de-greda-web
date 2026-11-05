@@ -1,3 +1,4 @@
+import { isQuotaError,QUOTA_MESSAGE } from '../quota-errors.js';
 import { ApiError,requireAdmin } from './policy.js';
 import { checkPath,checkValue,checkDocument,separateImages,mergeContent,digest,contentLabel,imageFields,imageAt,putImage,GALLERY_LIMIT,TRASH_DAYS,HISTORY_LIMIT } from './content-model.js';
 const clean = data => Object.fromEntries(Object.entries(data || {}).filter(([k])=>!k.startsWith('_')));
@@ -13,7 +14,8 @@ export function createContentHandler({getServices,origin,now=Date.now}) {
    const {auth,db}=getServices(); let token;
    try { token=await auth.verifyIdToken(bearer[1],true); } catch { throw new ApiError(401,'Tu sesión terminó. Ingresa nuevamente.'); }
    const actor=db.doc(`administradores/${token.uid}`);
-   requireAdmin((await actor.get()).data());
+   const actorProfile=(await actor.get()).data();
+   requireAdmin(actorProfile);
    const security=(await db.doc('sistema/seguridad').get()).data();
    if(security?.requireMfa && token.firebase?.sign_in_second_factor!=='totp') throw new ApiError(403,'Ingresa con tu segundo factor.');
    await db.runTransaction(async tx=>{
@@ -57,7 +59,7 @@ export function createContentHandler({getServices,origin,now=Date.now}) {
      return res.status(200).json({collection,items:list.docs.map(d=>({id:d.id,data:d.data()})),next:list.size===3?list.docs.at(-1).id:null});
     }
     const list=await db.collection('historialContenido').orderBy('at','desc').limit(30).get();
-    return res.status(200).json({items:list.docs.map(d=>({id:d.id,...d.data()})),galleryLimit:GALLERY_LIMIT,trashDays:TRASH_DAYS,role:(await actor.get()).data()?.rol});
+    return res.status(200).json({items:list.docs.map(d=>({id:d.id,...d.data()})),galleryLimit:GALLERY_LIMIT,trashDays:TRASH_DAYS,role:actorProfile?.rol});
    }
    if(!String(req.headers['content-type']||'').startsWith('application/json')) throw new ApiError(415,'Envía datos JSON.');
    let body=req.body;
@@ -138,6 +140,6 @@ export function createContentHandler({getServices,origin,now=Date.now}) {
     result={revision:revision+1,data:next,message:next?'Contenido guardado.':'Enviado a la papelera durante 5 días.'};
    });
    return res.status(200).json(result);
-  } catch(error) {return res.status(error.status||500).json({message:error.status?error.message:'No se pudo guardar. Tus cambios siguen en pantalla; revisa la conexión e intenta nuevamente.'});}
+  } catch(error) {if(isQuotaError(error)){res.setHeader('Retry-After','120');return res.status(503).json({code:'resource-exhausted',message:QUOTA_MESSAGE});}return res.status(error.status||500).json({message:error.status?error.message:'No se pudo guardar. Tus cambios siguen en pantalla; revisa la conexión e intenta nuevamente.'});}
  };
 }

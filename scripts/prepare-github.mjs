@@ -6,7 +6,7 @@ if(!/^(PARA_SUBIR_GITHUB_|ENTREGA_)[a-zA-Z0-9_-]+$/.test(destination)) throw new
 const rootFiles = [
   'index.html','carta.html','nosotros.html','admin.html','admin.js','admin-management.js','admin-management.css',
   'firebase-config.js','site-config.js','privacy.js','privacy.css','privacidad.html','cookies.html','aviso-legal.html',
-  'content-client.js','content-tools.js','content-tools.css','image-editor.js','image-page-preview.js','site-polish.js','site-polish.css','featured.js',
+  'content-store.js','quota-errors.js','public-content.js','public-data-cache.js','public-data-model.js','content-client.js','content-tools.js','content-tools.css','image-editor.js','image-page-preview.js','site-polish.js','site-polish.css','featured.js',
   'logo tetera.png','Google-Review-Emblem.png','platocualquera.jpg','seed-data.js',
   'package.json','package-lock.json','vercel.json','firebase.json','.firebaserc','firestore.rules','.gitignore','.env.example'
 ];

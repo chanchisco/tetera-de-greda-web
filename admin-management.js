@@ -1,3 +1,4 @@
+import { isQuotaError,QUOTA_MESSAGE } from './quota-errors.js';
 import { auth, db } from './firebase-config.js';
 import { doc, onSnapshot, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { sendPasswordResetEmail, getMultiFactorResolver, TotpMultiFactorGenerator, multiFactor, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification, reload } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
@@ -96,13 +97,13 @@ export function watchAccess(user, start) {
       $('panel-root').classList.add('hidden'); $('login-page').style.display = 'flex';
       $('login-error').textContent = e.message || 'No se pudo comprobar la seguridad. Reintenta.';
     }
-  }, () => {
+  }, error => {
     if (epoch !== accessEpoch) return;
     ++profileRevision; currentProfile = null; users = [];
     $('gestion-nav').classList.add('hidden'); $('management-users').replaceChildren();
     if (dialog.open) finishDialog(null);
     $('panel-root').classList.add('hidden'); $('login-page').style.display = 'flex';
-    $('login-error').textContent = 'No se pudieron comprobar permisos. Verifica la conexión y la configuración de Firebase; luego reintenta.';
+    $('login-error').textContent = isQuotaError(error)?QUOTA_MESSAGE:'No se pudieron comprobar permisos. Verifica la conexión y la configuración de Firebase; luego reintenta.';
   });
 }
 

@@ -1,0 +1,3 @@
+export const QUOTA_MESSAGE='Se alcanzó la cuota temporal de Firebase. Tus cambios siguen en pantalla. Evita reintentar repetidamente y vuelve a probar cuando se renueve la cuota diaria; no necesitas cambiar al plan de pago.';
+export function isQuotaError(error){return error?.code===8||['8','resource-exhausted','firestore/resource-exhausted'].includes(error?.code)||/RESOURCE_EXHAUSTED|quota exceeded|quota.*exhausted/i.test(error?.message||'');}
+export function readableError(error,fallback='No se pudo completar la operación. Revisa la conexión e intenta nuevamente.'){return isQuotaError(error)?QUOTA_MESSAGE:error?.message||fallback;}
