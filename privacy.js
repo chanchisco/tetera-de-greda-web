@@ -36,14 +36,14 @@ const maps = [...document.querySelectorAll('iframe[data-privacy-map]')];
 function renderMaps() {
   for (const iframe of maps) {
     if (choice?.maps) {
-      iframe.src = iframe.dataset.privacyMap;
+      if (iframe.getAttribute('src') !== iframe.dataset.privacyMap) iframe.src = iframe.dataset.privacyMap;
       iframe.hidden = false;
       iframe.previousElementSibling?.classList.contains('privacy-map-placeholder') && iframe.previousElementSibling.remove();
     } else {
       iframe.removeAttribute('src'); iframe.hidden = true;
       if (iframe.previousElementSibling?.classList.contains('privacy-map-placeholder')) continue;
       const placeholder = document.createElement('div'); placeholder.className = 'privacy-map-placeholder';
-      placeholder.innerHTML = '<p>Santa Ana 98, Villa Alemana</p><p>El mapa de Google está desactivado.</p><button type="button" class="privacy-button" data-privacy-open>Configurar mapa</button><a href="https://www.google.com/maps/search/?api=1&query=Santa+Ana+98+Villa+Alemana+Chile" target="_blank" rel="noopener noreferrer">Abrir dirección en Google Maps</a>';
+      placeholder.innerHTML = '<p>Santa Ana 98, Villa Alemana</p><p>El mapa de Google está desactivado.</p><button type="button" class="privacy-button" data-privacy-open>Configurar mapa</button><a href="https://maps.app.goo.gl/k2JwBPExN58o6hmK7" target="_blank" rel="noopener noreferrer">Ver La Tetera de Greda en Google Maps</a>';
       iframe.before(placeholder);
     }
   }

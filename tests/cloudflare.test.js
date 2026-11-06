@@ -20,3 +20,17 @@ test('Worker cachea solo respuestas públicas correctas, conserva permisos y no 
  const app=createCloudflareApp({cache:()=>cache,services:()=>({db:{collection:()=>({get:async()=>{reads++;return {docs:[]};}}),doc:path=>({get:async()=>{reads++;return {id:path.split('/').at(-1),exists:false};}})}}),sendRecovery:async()=>{}}),ctx={waitUntil:promise=>tasks.push(promise)};
  let res=await app.fetch(new Request('https://cf.test/api/publico'),env,ctx);assert.equal(res.status,200);await Promise.all(tasks);res=await app.fetch(new Request('https://cf.test/api/publico'),env,ctx);assert.equal(res.headers.get('X-Tetera-Cache'),'HIT');assert.equal(reads,9);res=await app.fetch(new Request('https://cf.test/api/contenido'),env,ctx);assert.equal(res.status,401);assert.equal(stored.size,1);res=await app.fetch(new Request('https://cf.test/api/no-existe'),env,ctx);assert.equal(res.status,404);assert.match(res.headers.get('Content-Type'),/json/);
 });
+
+test('REST mantiene los separadores RPC literales que exige Google y codifica los nombres de documentos',async()=>{
+ const calls=[];const db=createRestFirestore({projectId:'demo-cf',getAccessToken:async()=> 'test',fetcher:async(url,options)=>{
+  calls.push(url);assert.doesNotMatch(url,/%3A(?:runQuery|batchGet|beginTransaction|commit|rollback)$/i);
+  if(url.endsWith(':runQuery'))return Response.json([]);if(url.endsWith(':batchGet'))return Response.json([]);if(url.endsWith(':beginTransaction'))return Response.json({transaction:'t'});return Response.json({});
+ }});
+ await db.collection('platos').limit(1).get();await db.doc('platos/foto:1 con espacio').get();await db.doc('platos/a').set({nombre:'A'});await db.runTransaction(async tx=>tx.set(db.doc('platos/b'),{nombre:'B'}));await assert.rejects(db.runTransaction(()=>{throw Error('cancelado');}));
+ for(const action of ['runQuery','batchGet','beginTransaction','commit','rollback'])assert.ok(calls.some(url=>url.endsWith(':'+action)));
+ // Los IDs del cuerpo batchGet quedan intactos; en una subcolección sí se codifica su ruta.
+ await db.doc('platos/foto:1 con espacio').collection('versiones').get();assert.ok(calls.at(-1).includes('foto%3A1%20con%20espacio'));
+});
+test('Cloudflare normaliza la barra de origen sin autorizar rutas, credenciales u otros sitios',async()=>{
+ const {configuredOrigin}=await import('../cloudflare/app.js');assert.equal(configuredOrigin(' https://cf.test/ '),'https://cf.test');assert.equal(configuredOrigin('https://cf.test'),'https://cf.test');for(const value of ['http://cf.test','https://cf.test/admin.html','https://cf.test/?x=1','https://u:p@cf.test',undefined])assert.equal(configuredOrigin(value),undefined);
+});

@@ -4,6 +4,7 @@ const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const destination = process.argv[2] || `PARA_SUBIR_GITHUB_${stamp}`;
 if(!/^(PARA_SUBIR_GITHUB_|ENTREGA_)[a-zA-Z0-9_-]+$/.test(destination)) throw new Error('Nombre de carpeta no válido.');
 const rootFiles = [
+  'ENTREGA_AJUSTES_FINALES_2026_11_06.md',
   'index.html','carta.html','nosotros.html','admin.html','admin.js','admin-management.js','admin-management.css',
   'firebase-config.js','site-config.js','privacy.js','privacy.css','privacidad.html','cookies.html','aviso-legal.html',
   'content-store.js','quota-errors.js','public-content.js','public-data-cache.js','public-data-model.js','content-client.js','content-tools.js','content-tools.css','image-editor.js','image-page-preview.js','social-links.js','site-polish.js','menu-social.css','site-polish.css','featured.js',

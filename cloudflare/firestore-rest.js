@@ -18,7 +18,12 @@ export function createRestFirestore({projectId,getAccessToken,endpoint='https://
  const clean=path=>{if(typeof path!=='string'||path.split('/').some(part=>!part||part==='.'||part==='..'))throw new Error('Ruta no válida.');return path;};
  const name=path=>`${root}/${clean(path)}`;
  async function call(path,body,method='POST'){
-  const token=await getAccessToken();const response=await fetcher(`${endpoint}/${path.split('/').map(encodeURIComponent).join('/')}`,{method,headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},...(body!==undefined?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(20000)});
+  // Google distingue el sufijo RPC literal (:runQuery) de un carácter dentro
+  // del nombre de documento. Codificar el separador como %3A devuelve 404.
+  const action=/:(batchGet|runQuery|commit|beginTransaction|rollback)$/.exec(path);
+  const resource=action?path.slice(0,-action[0].length):path;
+  const encoded=resource.split('/').map(encodeURIComponent).join('/')+(action?action[0]:'');
+  const token=await getAccessToken();const response=await fetcher(`${endpoint}/${encoded}`,{method,headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},...(body!==undefined?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(20000)});
   const value=await response.json().catch(()=>({}));if(!response.ok)throw Object.assign(new Error(value.error?.message||'Firestore no disponible.'),{code:codes[value.error?.status]||response.status});return value;
  }
  function snap(path,record){return {id:path.split('/').at(-1),ref:doc(path),exists:!!record,data:()=>record?decodeFields(record.fields):undefined};}

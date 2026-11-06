@@ -308,10 +308,11 @@
     <!-- RESEÑAS -->
     <section class="reviews">
         <h2>Lo que dicen nuestros clientes</h2>
+        <p class="reviews-note">Selección de comentarios publicada en este sitio; no se actualiza automáticamente.</p>
         <div class="review-grid">
             <div class="review-card" data-aos="fade-up" data-aos-duration="2000">
                 <div class="review-card-top">
-                    <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                    <div class="stars" role="img" aria-label="5 de 5 estrellas"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
                     <img src="Google-Review-Emblem.png" alt="Google Reviews" class="google-badge" onerror="this.style.display='none'">
                 </div>
                 <p>"Excelente atención y comida casera de primer nivel. El pastel de choclo estaba increíble. Ambiente muy familiar y acogedor."</p>
@@ -319,7 +320,7 @@
             </div>
             <div class="review-card" data-aos="flip-left" data-aos-duration="2000">
                 <div class="review-card-top">
-                    <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                    <div class="stars" role="img" aria-label="5 de 5 estrellas"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
                     <img src="Google-Review-Emblem.png" alt="Google Reviews" class="google-badge" onerror="this.style.display='none'">
                 </div>
                 <p>"Las mejores carnes a lo pobre de Villa Alemana. Porciones contundentes y el pisco sour tradicional es una maravilla."</p>
@@ -327,13 +328,14 @@
             </div>
             <div class="review-card" data-aos="fade-down" data-aos-duration="2000">
                 <div class="review-card-top">
-                    <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></div>
+                    <div class="stars" role="img" aria-label="4,5 de 5 estrellas"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></div>
                     <img src="Google-Review-Emblem.png" alt="Google Reviews" class="google-badge" onerror="this.style.display='none'">
                 </div>
                 <p>"Muy buen menú de almuerzo durante la semana. Te atienden rápido y todo tiene ese sabor a comida hecha en casa."</p>
                 <span class="review-author">— Daniela V.</span>
             </div>
         </div>
+        <a class="reviews-source" href="https://maps.app.goo.gl/k2JwBPExN58o6hmK7" target="_blank" rel="noopener noreferrer">Ver las opiniones del local en Google Maps <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
     </section>
 
     <!-- INSTAGRAM -->
@@ -412,7 +414,7 @@
                 <a class="instagram-link facebook-link" data-facebook hidden target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i> Síguenos en Facebook</a></div>
             </div>
             <div class="map-box">
-                <iframe title="Ubicación de La Tetera de Greda" hidden data-privacy-map="https://maps.google.com/maps?q=Santa%20Ana%2098,%20Villa%20Alemana,%20Chile&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+                <iframe title="Ubicación de La Tetera de Greda" hidden data-privacy-map="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d418.05119909916345!2d-71.380816!3d-33.0456819!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689d7007ab7985f%3A0x89c21f3d29fd6004!2sLa%20tetera%20de%20greda!5e0!3m2!1ses-419!2scl!4v1793985200984!5m2!1ses-419!2scl" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
     </section>
@@ -444,7 +446,7 @@
         import { db, collection, getDocs, query, orderBy, doc, getDoc } from './public-content.js';
 
         // AOS
-        AOS.init({ once: true });
+        window.AOS?.init({ once: true });
 
         // Sticky Nav
         const stickyNav = document.getElementById('sticky-nav');

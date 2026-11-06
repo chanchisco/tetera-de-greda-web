@@ -12,6 +12,7 @@ await writeFile('dist/_headers',`/*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
 `);
-await writeFile('dist/_redirects','');
+// Con html_handling:none hay que resolver explícitamente la portada en /.
+await writeFile('dist/_redirects','/ /index.html 200\n');
 for(const file of ['logo tetera.png','platocualquera.jpg'])if((await stat(`dist/${file}`)).size>25*1024*1024)throw new Error(`Recurso demasiado grande para Cloudflare: ${file}`);
 console.log('Cloudflare: recursos preparados; API en cloudflare/worker.js.');

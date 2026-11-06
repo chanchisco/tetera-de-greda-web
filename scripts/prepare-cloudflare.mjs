@@ -1,6 +1,6 @@
 import { readFile,writeFile,copyFile,unlink } from 'node:fs/promises';
 import { join } from 'node:path';
-const destination=process.argv[2]||'ENTREGA_CLOUDFLARE_2026_11_05';
+const destination=process.argv[2]||'ENTREGA_CLOUDFLARE_2026_11_06';
 process.argv[2]=destination;
 await import('./prepare-github.mjs');
 const pkg=JSON.parse(await readFile('package.json','utf8'));

@@ -168,22 +168,23 @@
         </nav>
     </header>
 
-    <section class="story-section" id="historia-section">
-        <div class="story-block" id="historia-block-1">
+    <p id="historia-status" class="content-load-status" role="status">Cargando nuestra historia…</p>
+    <section class="story-section" id="historia-section" hidden>
+        <div class="story-block" id="historia-block-1" hidden>
             <div class="story-text">
                 <h2 id="hist-tit1-disp">Nuestros Orígenes</h2>
                 <p id="hist-txt1-disp">Fundado hace años en Villa Alemana, La Tetera de Greda nació del amor por las raíces chilenas. Cada plato que servimos en nuestras fuentes de greda cuenta una historia de tradición, esfuerzo y familia. Nuestra misión es que cada cliente se sienta como almorzando en su propio hogar, rodeado de sabores auténticos y una atención cálida.</p>
             </div>
             <img src="" alt="Local" class="story-img" id="story-img-1" style="display:none;">
         </div>
-        <div class="story-block reverse" id="historia-block-2">
+        <div class="story-block reverse" id="historia-block-2" hidden>
             <div class="story-text">
                 <h2 id="hist-tit2-disp">Referente Gastronómico</h2>
                 <p id="hist-txt2-disp">A lo largo del tiempo, nos hemos convertido en un referente gastronómico de la Quinta Región, manteniendo siempre la calidad de nuestras materias primas y el respeto por las recetas de antaño. Nuestros ingredientes son seleccionados con cuidado, y nuestras gredas traídas del sur le dan ese toque único a cada preparación.</p>
             </div>
             <img src="" alt="Comida en greda" class="story-img" id="story-img-2" style="display:none;">
         </div>
-        <div class="story-block" id="historia-block-3">
+        <div class="story-block" id="historia-block-3" hidden>
             <div class="story-text">
                 <h2 id="hist-tit3-disp">Familia y Comunidad</h2>
                 <p id="hist-txt3-disp">Somos mucho más que un restaurante: somos el punto de encuentro de familias, amigos y vecinos de Villa Alemana y toda la Quinta Región. Cada visita es una celebración de lo nuestro, de lo chileno, de lo hecho con amor en casa. Gracias a nuestros clientes de siempre, seguimos creciendo con orgullo.</p>
@@ -192,6 +193,7 @@
         </div>
     </section>
 
+    <noscript><p class="content-load-status">Activa JavaScript para consultar la historia y las fotografías del restaurante.</p></noscript>
     <section class="valores-section">
         <h2>Nuestros Valores</h2>
         <div class="valores-grid">
@@ -214,7 +216,7 @@
     </section>
 
     <!-- GALERÍA -->
-    <section class="gallery-section" id="galeria-section">
+    <section class="gallery-section" id="galeria-section" hidden>
         <h2>Nuestro Espacio</h2>
         <div class="scrolling-gallery" id="galeria-display">
             <!-- Cargado desde Firestore -->
@@ -236,7 +238,7 @@
                 <a class="instagram-link facebook-link" data-facebook hidden target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i> Síguenos en Facebook</a></div>
             </div>
             <div class="map-box">
-                <iframe title="Ubicación de La Tetera de Greda" hidden data-privacy-map="https://maps.google.com/maps?q=Santa%20Ana%2098,%20Villa%20Alemana,%20Chile&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+                <iframe title="Ubicación de La Tetera de Greda" hidden data-privacy-map="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d418.05119909916345!2d-71.380816!3d-33.0456819!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689d7007ab7985f%3A0x89c21f3d29fd6004!2sLa%20tetera%20de%20greda!5e0!3m2!1ses-419!2scl!4v1793985200984!5m2!1ses-419!2scl" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
     </section>
@@ -270,26 +272,17 @@
         import { db, doc, getDoc, collection, getDocs } from './public-content.js';
 
         // AOS
-        AOS.init({ once: true });
+        window.AOS?.init({ once: true });
 
         // Cargar datos dinámicos
         async function cargarDatos() {
-            // CACHÉ de portada: mostrar inmediatamente desde localStorage
+            // La portada y la historia usan la misma copia pública validada.
             const hero = document.getElementById('hero-nosotros');
-            try {
-                const cached = JSON.parse(localStorage.getItem('greda_portadas_v1') || 'null');
-                if (cached && cached.nosotros) {
-                    hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${cached.nosotros}')`;
-                    hero.style.backgroundSize = 'cover';
-                    hero.style.backgroundPosition = 'center';
-                }
-            } catch(e) {}
 
             // Actualizar portada desde Firestore en segundo plano
             getDoc(doc(db, 'configuracion', 'portadas')).then(snap => {
                 if (snap.exists()) {
                     const p = snap.data();
-                    try { localStorage.setItem('greda_portadas_v1', JSON.stringify(p)); } catch(e) {}
                     if (p.nosotros) {
                         hero.style.backgroundImage = `linear-gradient(rgba(64,27,15,0.78), rgba(122,40,29,0.78)), url('${p.nosotros}')`;
                         hero.style.backgroundSize = 'cover';
@@ -311,10 +304,10 @@
                         // Bloque individual habilitado/deshabilitado
                         const bloqueEl = document.getElementById(`historia-block-${i}`);
                         if(b.habilitado === false) {
-                            if(bloqueEl) bloqueEl.style.display = 'none';
+                            if(bloqueEl) bloqueEl.hidden = true;
                         } else {
                             alguno = true;
-                            if(bloqueEl) bloqueEl.style.display = '';
+                            if(bloqueEl) bloqueEl.hidden = false;
                             if(b.tit) document.getElementById(`hist-tit${i}-disp`).textContent = b.tit;
                             if(b.txt) document.getElementById(`hist-txt${i}-disp`).textContent = b.txt;
                             const imgEl = document.getElementById(`story-img-${i}`);
@@ -322,11 +315,16 @@
                             else { imgEl.style.display = 'none'; }
                         }
                     }
-                    if(!alguno) document.getElementById('historia-section').style.display = 'none';
+                    document.getElementById('historia-section').hidden = !alguno;
                 } else {
-                    document.getElementById('historia-section').style.display = 'none';
+                    document.getElementById('historia-section').hidden = true;
                 }
-            } catch(e) {}
+                document.getElementById('historia-status').hidden = true;
+            } catch(e) {
+                const status = document.getElementById('historia-status');
+                status.textContent = 'No pudimos cargar nuestra historia. ';
+                const retry = document.createElement('a'); retry.href = 'nosotros.html'; retry.textContent = 'Volver a intentar'; status.append(retry);
+            }
 
             // Galeria
             try {
@@ -338,6 +336,7 @@
                     const cont = document.getElementById('galeria-display');
                     const visiblePhotos=gSnap.docs.filter(d=>d.data().disponible!==false);
                     if(visiblePhotos.length) {
+                        document.getElementById('galeria-section').hidden = false;
                         cont.innerHTML = '';
                         [...visiblePhotos].sort((a,b)=>(a.data().orden||a.data().ts||0)-(b.data().orden||b.data().ts||0)).forEach((d,index) => {
                             const item = document.createElement('div'); item.className = 'gallery-item'; item.hidden=index>=6;
@@ -350,6 +349,7 @@
                     }
                 }
             } catch(e) {}
+            window.AOS?.refresh();
         }
         cargarDatos();
 

@@ -4,5 +4,19 @@
 .menu-kind-btn.active{background:var(--menu-switch-ink);color:white}.menu-kind-btn:hover{box-shadow:0 2px 8px #401b0f22}.menu-kind-btn:focus-visible{outline:3px solid #e58729;outline-offset:3px}
 #filtros-section[hidden],#menu-grid[hidden],#drinks-section[hidden],#drinks-section [hidden],.social-highlights [hidden],.contact-social-links [hidden]{display:none!important}
 .social-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));background:white}.social-highlights:has(.facebook-highlight[hidden]){grid-template-columns:1fr}
-.contact-social-links{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.contact-social-links .facebook-link{background:#1877f2}
+.contact-social-links{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px}.contact-social-links .instagram-link{margin-top:0}.contact-social-links .facebook-link{background:#1877f2}
 @media(max-width:768px){.social-highlights{grid-template-columns:1fr}.menu-kind-btn{padding:10px 12px;font-size:.875rem}}
+/* Ajustes puntuales: misma identidad, reseñas con una superficie más clara. */
+:root{--review-surface:rgba(255,255,255,.97);--review-ink:#202124;--review-muted:#5f6368;--review-line:#dadce0;--review-gap:24px;--review-radius:12px;--review-small:.875rem;--review-accent:#8a5700}
+.reviews .review-card{background:var(--review-surface);color:var(--review-ink);border:1px solid var(--review-line);border-radius:var(--review-radius);padding:var(--review-gap);flex:1 1 280px;min-width:0}
+.reviews .review-card p{font-style:normal;color:var(--review-ink)}
+.reviews .review-author{color:var(--review-muted)}
+.reviews .stars{color:var(--review-accent)}
+.reviews h2{margin-bottom:16px}
+.reviews-note{max-width:65ch;margin:0 auto var(--review-gap);font-size:var(--review-small);line-height:1.6;color:#f3e8dd}
+.reviews-source{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin-top:var(--review-gap);color:white;text-underline-offset:4px;font-size:var(--review-small)}
+.reviews-source:hover{color:#f3e8dd}.reviews-source:focus-visible{outline:3px solid white;outline-offset:4px}
+.social-highlights{max-width:1120px;margin-inline:auto}
+.social-highlights .instagram-highlight{padding-inline:16px}
+#historia-section[hidden],#galeria-section[hidden],.story-block[hidden]{display:none!important}
+.content-load-status{max-width:1000px;margin:24px auto;padding:16px;color:#401b0f;text-align:center;font-size:.875rem}.content-load-status[hidden]{display:none}.content-load-status a{color:#7a281d;text-underline-offset:4px}

@@ -4,9 +4,10 @@ import { createPublicCatalogHandler } from '../server/public-catalog.js';
 import { createImageHandler } from '../server/image-response.js';
 import { adaptHandler } from './adapter.js';
 const security={'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Strict-Transport-Security':'max-age=31536000'};
+export function configuredOrigin(value){try{const url=new URL(value?.trim());return url.protocol==='https:'&&url.pathname==='/'&&!url.search&&!url.hash&&!url.username&&!url.password?url.origin:undefined;}catch{return undefined;}}
 export function createCloudflareApp({services,sendRecovery,cache=()=>globalThis.caches?.default}){
  const handlers=new WeakMap();
- function routes(env){if(!handlers.has(env)){const getServices=()=>services(env);handlers.set(env,{'/api/contenido':createContentHandler({getServices,origin:env.APP_ORIGIN}),'/api/gestion':createManagementHandler({getServices,origin:env.APP_ORIGIN,sendRecovery:email=>sendRecovery(email,env)}),'/api/publico':createPublicCatalogHandler({getDb:()=>getServices().db}),'/api/imagen':createImageHandler({getDb:()=>getServices().db}),'/api/foto':createImageHandler({getDb:()=>getServices().db,legacy:true})});}return handlers.get(env);}
+ function routes(env){if(!handlers.has(env)){const getServices=()=>services(env),origin=configuredOrigin(env.APP_ORIGIN);handlers.set(env,{'/api/contenido':createContentHandler({getServices,origin}),'/api/gestion':createManagementHandler({getServices,origin,sendRecovery:email=>sendRecovery(email,{...env,APP_ORIGIN:origin})}),'/api/publico':createPublicCatalogHandler({getDb:()=>getServices().db}),'/api/imagen':createImageHandler({getDb:()=>getServices().db}),'/api/foto':createImageHandler({getDb:()=>getServices().db,legacy:true})});}return handlers.get(env);}
  return {async fetch(request,env,ctx){
   const url=new URL(request.url),handler=routes(env)[url.pathname];
   if(!handler){if(url.pathname.startsWith('/api/'))return Response.json({message:'Ruta no encontrada.'},{status:404,headers:{...security,'Cache-Control':'no-store'}});return env.ASSETS.fetch(request);}
